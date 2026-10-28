@@ -1,0 +1,25 @@
+{
+    "name": "HSE.CodeCraft.Editor",
+    "rootNamespace": "HSE.CodeCraft.Editor",
+    "references": [
+        "GUID:401285f8011b01e4090aec83d12e7dc5",
+        "GUID:1a456a28a22dfb141abfe660401bff2f",
+        "GUID:99b7868b38f9fa447a4226a3163b68e9",
+        "GUID:a432eb0a70c5c4a37ab50d59671586f8",
+        "GUID:ca937d03ee5dd4d699091438dc0f3ae6"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

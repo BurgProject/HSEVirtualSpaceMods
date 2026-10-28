@@ -1,0 +1,410 @@
+using System;
+using System.Collections.Generic;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Entities.Exposed;
+using Unity.Mathematics;
+using Unity.Rendering;
+
+namespace Latios.Kinemation
+{
+    /// <summary>
+    /// When present, LOD filtering is performed on a MaterialMeshInfo that uses ranges,
+    /// such that a LOD mask for each Material, Mesh, and SubMesh tuple in the range
+    /// is tested against the active LOD region stored in the MaterialMeshInfo.
+    /// LodCrossfade low-res compliments are computed on-the-fly and the LODCrossfade value
+    /// is assumed to always represent a high-res LOD, even if no tuple supports the high-res LOD.
+    /// </summary>
+    public struct UseMmiRangeLodTag : IComponentData {}
+
+    /// <summary>
+    /// A LOD Crossfade factor used by BatchRendererGroup. If disabled,
+    /// then LOD Crossfade is turned off for the entity for the specified culling pass.
+    /// It should be disabled most of the time.
+    /// </summary>
+    public struct LodCrossfade : IComponentData, IEnableableComponent
+    {
+        /// <summary>
+        /// An snorm representation of the range [-1, 1] where negative values
+        /// result in the complement dither of the absolute value
+        /// </summary>
+        public byte raw;
+
+        /// <summary>
+        /// Sets the crossfade value based on the opacity of the higher resolution
+        /// LOD and a bool specifying if it should be complemented for the low-resolution
+        /// LOD.
+        /// </summary>
+        /// <param name="opacity">The high resolution LOD opacity</param>
+        /// <param name="isLowRes">Set to true if this entity represents the low-res LOD. Always set to false when using multi-LOD filtering.</param>
+        public void SetFromHiResOpacity(float opacity, bool isLowRes)
+        {
+            opacity    = math.max(opacity, math.EPSILON);
+            int snorm  = (int)math.ceil(opacity * 127f);
+            snorm      = math.select(snorm, -snorm, isLowRes);
+            snorm     &= 0xff;
+            raw        = (byte)snorm;
+        }
+
+        /// <summary>
+        /// Retrieves the hi-res LOD opacity.
+        /// </summary>
+        public float hiResOpacity
+        {
+            get
+            {
+                int reg = raw;
+                var pos = math.select(reg, 256 - reg, reg > 128);
+                return pos / 127f;
+            }
+        }
+
+        /// <summary>
+        /// Returns a complementary crossfade value for the current crossfade
+        /// </summary>
+        public LodCrossfade ToComplement()
+        {
+            int snorm                      = raw;
+            snorm                         += math.select(0, 1, snorm == 128);
+            snorm                          = (~snorm) + 1;
+            snorm                         &= 0xff;
+            return new LodCrossfade { raw  = (byte)snorm };
+        }
+    }
+
+    // Note: You might think it would be better to cache the world-space heights before the culling callbacks.
+    // However, we still need the positions for distance calculations. And unlike LOD Pack and Mesh LOD, these heights
+    // are independent of skinning.
+    /// <summary>
+    /// A LOD filtering component that restricts the entity to only render when it is within a specific screen height percentage.
+    /// </summary>
+    public struct LodHeightPercentages : IComponentData
+    {
+        // Signs represent the LOD index
+        public float localSpaceHeight;
+        public half  minPercent;
+        public half  maxPercent;
+    }
+
+    /// <summary>
+    /// A LOD filtering component that restricts the entity to only render when it is within a specific screen height percentage.
+    /// This variant also defines additional boundaries that define LOD Crossfade regions.
+    /// </summary>
+    public struct LodHeightPercentagesWithCrossfadeMargins : IComponentData
+    {
+        // Signs of first three fields represent the LOD index
+        public float localSpaceHeight;
+        public half  minPercent;
+        public half  maxPercent;
+        public half  minCrossFadeEdge;  // if negative, then disable crossfade
+        public half  maxCrossFadeEdge;  // if negative, then disable crossfade
+    }
+
+    /// <summary>
+    /// Specifies that this crossfade should use SpeedTree-style crossfades which only ever renders the higher-res LOD
+    /// and morphs it to perceptually match the lower-res LOD.
+    /// </summary>
+    public struct SpeedTreeCrossfadeTag : IComponentData { }
+
+    /// <summary>
+    /// Specifies the height and screen percentages for a 2-LOD entity with the UseMmiRangeLodTag.
+    /// This is the best choice for high entity counts, such as projectiles. If fullLod1ScreenHeighFraction
+    /// is negative, LOD1 is treated as a culled LOD level.
+    /// </summary>
+    public struct MmiRange2LodSelect : IComponentData
+    {
+        public half fullLod0ScreenHeightFraction;
+        public half fullLod1ScreenHeightFraction;
+    }
+
+    /// <summary>
+    /// Specifies the height and screen percentages for a 3-LOD entity with the UseMmiRangeLodTag.
+    /// This is the best choice for high static entity counts, such as static environment props.
+    /// If fullLod1ScreenHeightMaxFraction is negative, LOD1 is treated as a culled LOD level.
+    /// If fullLod2ScreenHeightFraction is negative, LOD2 is treated as a culled LOD level.
+    /// </summary>
+    public struct MmiRange3LodSelect : IComponentData
+    {
+        public half fullLod0ScreenHeightFraction;
+        public half fullLod1ScreenHeightMaxFraction;
+        public half fullLod1ScreenHeightMinFraction;
+        public half fullLod2ScreenHeightFraction;
+    }
+
+    /// <summary>
+    /// Additional optimization flags for packed LODs
+    /// </summary>
+    public struct MmiRangeLodFlags : IComponentData
+    {
+        byte packed;
+        public bool disableLod1ShadowCasting
+        {
+            get => Bits.GetBit(packed, 0);
+            set => Bits.SetBit(ref packed, 0, value);
+        }
+        public bool disableLod2ShadowCasting
+        {
+            get => Bits.GetBit(packed, 1);
+            set => Bits.SetBit(ref packed, 1, value);
+        }
+        public bool disableLod1MotionVectors
+        {
+            get => Bits.GetBit(packed, 2);
+            set => Bits.SetBit(ref packed, 2, value);
+        }
+        public bool disableLod2MotionVectors
+        {
+            get => Bits.GetBit(packed, 3);
+            set => Bits.SetBit(ref packed, 3, value);
+        }
+    }
+
+    /// <summary>
+    /// The Mesh LOD level and total LOD level count within the mesh. The LOD level can be driven
+    /// directly at runtime. The count should be modified if the mesh is modified. Mesh LOD is
+    /// disabled for any MMI Range element that does not have the least-significant LOD mask bit set.
+    /// So in a LOD Pack, only the high-resolution LOD level will use Mesh LOD.
+    /// The enabled bit signifies that the LOD Crossfade is being driven by Mesh LOD, and that it
+    /// should fade with a level one higher than the lodLevel.
+    /// </summary>
+    public struct MeshLod : IComponentData, IEnableableComponent
+    {
+        public ushort lodLevel;
+        public ushort levelCount;
+    }
+
+    /// <summary>
+    /// A logarithmic curve for evaluating the LOD level of a Mesh LOD. When this is present, a
+    /// system automatically evaluates and sets the LOD level of the Mesh LOD. Exclude this component
+    /// to manually drive the LOD level.
+    /// </summary>
+    public struct MeshLodCurve : IComponentData
+    {
+        public float slope;
+        public half  preClampBias;  // Comes from mesh
+        public half  postClampBias;  // Comes from renderer
+    }
+
+    /// <summary>
+    /// A margin in the range of [0, 0.5] for crossfading between Mesh LOD levels. This component
+    /// can be set on the worldBlackboardEntity to control the crossfading for all Mesh LOD entities.
+    /// Automatic crossfading is disabled when there is no curve.
+    /// </summary>
+    public struct MeshLodCrossfadeMargin : IComponentData
+    {
+        public half margin;
+    }
+
+    /// <summary>
+    /// A shared component that may exist in tandem with RenderMeshArray, specifying the textures
+    /// within that RenderMeshArray which use mipmap streaming. This also stores a mapping of
+    /// materials to those textures and cached UV metrics for meshes.
+    /// </summary>
+    public struct StreamingMipMapArray : ISharedComponentData, IEquatable<StreamingMipMapArray>
+    {
+        public struct RangeByMaterial
+        {
+            public int start;
+            public int count;
+        }
+
+        public struct StreamingTextureInMaterial
+        {
+            public UnityObjectRef<UnityEngine.Texture2D> streamingTexture;
+            public float2                                textureScale;
+            public int                                   texelCount;
+            public int                                   mipmapCount;
+        }
+
+        public struct MeshMetric
+        {
+            public float uv0Metric;
+            // Todo: Replace this with single float of areaScale2 precomputed in 0.16.0.
+            public float3 meshLocalBounds;
+        }
+
+        public StreamingTextureInMaterial[] streamingTextures;
+        public RangeByMaterial[]            ranges;
+        public MeshMetric[]                 meshMetrics;
+        public uint4                        renderMeshArrayHash;
+        public uint4                        metadataHash;
+
+        public static uint4 ComputeMetadataHash(ReadOnlySpan<StreamingTextureInMaterial> streamingTextureInMaterials,
+                                                ReadOnlySpan<RangeByMaterial>            rangesByMaterial,
+                                                ReadOnlySpan<MeshMetric>                 meshMetrics)
+        {
+            var hash = new xxHash3.StreamingState(false);
+
+            hash.Update(streamingTextureInMaterials.Length);
+            hash.Update(rangesByMaterial.Length);
+            hash.Update(meshMetrics.Length);
+
+            foreach (var metric in meshMetrics)
+                hash.Update(metric);
+            foreach (var range in rangesByMaterial)
+                hash.Update(range);
+            foreach (var texture in streamingTextureInMaterials)
+            {
+                hash.Update(texture.texelCount);
+                hash.Update(texture.textureScale);
+                AssetHashExtras.UpdateAsset(ref hash, texture.streamingTexture);
+            }
+            return hash.DigestHash128();
+        }
+
+        public bool Equals(StreamingMipMapArray other)
+        {
+            return renderMeshArrayHash.Equals(other.renderMeshArrayHash) && metadataHash.Equals(other.metadataHash);
+        }
+
+        public override int GetHashCode()
+        {
+            return new uint4x2(renderMeshArrayHash, metadataHash).GetHashCode();
+        }
+    }
+
+    /// <summary>
+    /// Static class with utility methods for LOD evaluation (mostly extension methods)
+    /// </summary>
+    public static class LodUtilities
+    {
+        const uint kLodMaskInMmi = 0xf << 27;
+
+        /// <summary>
+        /// Sets the LOD region in the MaterialMeshInfo which can filter individual (mesh, material, submesh) tuples when UseMmiRangeLodTag is present.
+        /// </summary>
+        /// <param name="currentHiResLodIndex">The target high-res LOD index, with 0 being the highest resolution and 7 being the lowest resolution</param>
+        /// <param name="isCrossfadingWithLowerRes">If true, the LOD is in a crossfade with the adjacent lower resolution region where both are visible
+        /// (always false for speed tree)</param>
+        public static unsafe void SetCurrentLodRegion(ref this MaterialMeshInfo mmi, int currentHiResLodIndex, bool isCrossfadingWithLowerRes)
+        {
+            uint                     region = (uint)currentHiResLodIndex * 2 + math.select(0u, 1u, isCrossfadingWithLowerRes);
+            fixed (MaterialMeshInfo* mmiPtr = &mmi)
+            {
+                var     uintPtr     = (uint*)mmiPtr;
+                ref var packedData  = ref uintPtr[2];
+                packedData         &= ~kLodMaskInMmi;
+                packedData         |= (region << 27) & kLodMaskInMmi;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the LOD region from the MaterialMeshInfo
+        /// </summary>
+        /// <param name="currentHiResLodIndex">The target high-res LOD index, with 0 being the highest resolution and 7 being the lowest resolution</param>
+        /// <param name="isCrossfadingWithLowerRes">If true, the LOD is in a crossfade with the adjacent lower resolution region where both are visible
+        /// (always false for speed tree)</param>
+        public static unsafe void GetCurrentLodRegion(in this MaterialMeshInfo mmi, out int currentHiResLodIndex, out bool isCrossfadingWithLowerRes)
+        {
+            fixed (MaterialMeshInfo* mmiPtr = &mmi)
+            {
+                var uintPtr               = (uint*)mmiPtr;
+                var packedData            = uintPtr[2];
+                var region                = (packedData & kLodMaskInMmi) >> 27;
+                currentHiResLodIndex      = (int)(region >> 1);
+                isCrossfadingWithLowerRes = (region & 1) != 0;
+            }
+        }
+
+        /// <summary>
+        /// Computes a camera factor from the specified LOD parameters and bias.
+        /// Use the result in calls to ViewHeightFrom().
+        /// </summary>
+        /// <param name="lodParameters">The LOD parameters, which can be obtained from CullingContext on the worldBlackboardEntity</param>
+        /// <param name="lodBias">The bias which can be obtained from UnityEngine.QualitySettings.lodBias</param>
+        /// <returns>A factor which converts a world-space height into a view-space height</returns>
+        public static float CameraFactorFrom(in UnityEngine.Rendering.LODParameters lodParameters, float lodBias)
+        {
+            var isPerspective = !lodParameters.isOrthographic;
+            if (isPerspective)
+            {
+                return lodBias / (2f * math.tan(math.radians(lodParameters.fieldOfView) / 2f));
+            }
+            else
+            {
+                return lodBias / (2f * lodParameters.orthoSize);
+            }
+        }
+
+        /// <summary>
+        /// Computes a mipmap streaming camera factor from the specified LOD parameters.
+        /// Use the result in calls to DesiredMipMapLevelFrom
+        /// The value is equivalent to m_CameraEyeToScreenDistanceSquared based on this example:
+        /// https://docs.unity3d.com/6000.3/Documentation/ScriptReference/Mesh.GetUVDistributionMetric.html
+        /// </summary>
+        /// <param name="lodParameters">The LOD parameters, which can be obtained from CullingContext on the worldBlackboardEntity</param>
+        /// <param name="aspectRatio">The largest aspect ratio to be used by the </param>
+        /// <returns>A factor to be multiplied with the uv metric</returns>
+        public static float CameraMipMapFactorFrom(in UnityEngine.Rendering.LODParameters lodParameters, float aspectRatio)
+        {
+            var factor = math.square(CameraFactorFrom(in lodParameters, lodParameters.cameraPixelHeight * 0.5f));
+            if (aspectRatio > 1f)
+                factor *= aspectRatio;
+            return factor;
+        }
+
+        /// <summary>
+        /// Computes the view-space height for LOD evaluation.
+        /// For orthographic comparisons, you can directly compare this against screen fraction values [0, 1].
+        /// For perspective comparisons, you must divide the result by the distance of the renderable to the camera
+        /// (or multiply such distance with the screen fraction you are comparing to).
+        /// </summary>
+        /// <param name="localHeight">The local-space height. "Height actually refers to the largest axis of the AABB.</param>
+        /// <param name="scale">The uniform scale of the renderable element</param>
+        /// <param name="stretch">The non-uniform stretch of the renderable element</param>
+        /// <param name="cameraFactor">A camera factor derived from CameraFactorFrom()</param>
+        /// <returns>A view-space height</returns>
+        public static float ViewHeightFrom(float localHeight, float scale, float3 stretch, float cameraFactor)
+        {
+            return cameraFactor * math.abs(localHeight) * math.abs(scale) * math.cmax(math.abs(stretch));
+        }
+
+        /// <summary>
+        /// Computes the highest resolution mip-map level needed based on the various parameters
+        /// </summary>
+        /// <param name="worldRenderBounds">The world-space bounding box of the mesh</param>
+        /// <param name="meshMetric">Parameters that describe the baked mesh UV distribution for reference</param>
+        /// <param name="textureScale">The scale of the texture</param>
+        /// <param name="texelCount">The number of texels in the texture</param>
+        /// <param name="cameraPosition">The current position of the camera in world-space</param>
+        /// <param name="cameraMipMapFactor">A camera factor derived from CameraMipMapFactorFrom</param>
+        /// <param name="isPerspective">True if the camera uses perspective projection, false if it is orthographic</param>
+        /// <returns>A mip-map level, where 0 is the most detailed mip level</returns>
+        public static int DesiredMipMapLevelFrom(in WorldRenderBounds worldRenderBounds,
+                                                 in StreamingMipMapArray.MeshMetric meshMetric,
+                                                 float2 textureScale,
+                                                 int texelCount,
+                                                 float3 cameraPosition,
+                                                 float cameraMipMapFactor,
+                                                 bool isPerspective)
+        {
+            float distanceSq = 1f;
+            if (isPerspective)
+            {
+                distanceSq = math.distancesq(worldRenderBounds.Value.Center, cameraPosition);
+                if (distanceSq < 1e-6f)
+                    return 0;
+            }
+
+            var   boundsScale = worldRenderBounds.Value.Extents;
+            float areaScale;
+            if (boundsScale.x > boundsScale.y)
+                areaScale = boundsScale.x * math.max(boundsScale.y, boundsScale.z);
+            else
+                areaScale = boundsScale.y * math.max(boundsScale.x, boundsScale.z);
+            float areaScale2;
+            if (meshMetric.meshLocalBounds.x > meshMetric.meshLocalBounds.y)
+                areaScale2 = meshMetric.meshLocalBounds.x * math.max(meshMetric.meshLocalBounds.y, meshMetric.meshLocalBounds.z);
+            else
+                areaScale2  = meshMetric.meshLocalBounds.y * math.max(meshMetric.meshLocalBounds.x, meshMetric.meshLocalBounds.z);
+            areaScale      /= math.max(1e-6f, areaScale2);
+
+            var distributionMetric = meshMetric.uv0Metric * areaScale / (textureScale.x * textureScale.y);
+
+            var v      = (texelCount * distanceSq) / math.max(distributionMetric * cameraMipMapFactor, math.EPSILON);
+            var result = 0.5f * math.log2(math.abs(v));
+            return math.max((int)result, 0);
+        }
+    }
+}
+

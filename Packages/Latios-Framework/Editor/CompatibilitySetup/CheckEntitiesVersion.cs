@@ -1,0 +1,4 @@
+namespace Latios.Editor.CompatibilitySetup
+{
+}
+

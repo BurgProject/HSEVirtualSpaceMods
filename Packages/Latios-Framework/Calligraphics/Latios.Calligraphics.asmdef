@@ -1,0 +1,36 @@
+{
+    "name": "Latios.Calligraphics",
+    "rootNamespace": "Latios.Calligraphics",
+    "references": [
+        "Latios.Core",
+        "Latios.Calci",
+        "Latios.Psyshock",
+        "Latios.Kinemation",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.Mathematics.Extensions",
+        "Unity.Burst",
+        "Unity.Entities.Graphics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "!LATIOS_DISABLE_CALLIGRAPHICS",
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [
+		{
+            "name": "com.unity.entities",
+            "expression": "1.4.0",
+            "define": "ENTITIES_1_4"
+        }
+	],
+    "noEngineReferences": false
+}

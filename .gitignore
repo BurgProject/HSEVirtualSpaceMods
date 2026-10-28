@@ -1,0 +1,7 @@
+.sdk-export-backup~/
+.DS_Store
+Thumbs.db
+*.csproj
+*.sln
+.vs/
+.idea/

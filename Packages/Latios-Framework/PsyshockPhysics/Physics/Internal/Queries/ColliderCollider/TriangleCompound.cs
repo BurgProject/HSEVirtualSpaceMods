@@ -1,0 +1,292 @@
+using Unity.Burst;
+using Unity.Mathematics;
+
+namespace Latios.Psyshock
+{
+    internal static class TriangleCompound
+    {
+        public static bool AreOverlapping(in CompoundCollider compound,
+                                          in RigidTransform compoundTransform,
+                                          in TriangleCollider triangle,
+                                          in RigidTransform triangleTransform)
+        {
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(triangle, triangleTransform, compound, compoundTransform, 0f))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                if (AreOverlapping(in blobCollider, math.mul(compoundTransform, blobTransform), in triangle, in triangleTransform))
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool WithinDistance(in CompoundCollider compound,
+                                          in RigidTransform compoundTransform,
+                                          in TriangleCollider triangle,
+                                          in RigidTransform triangleTransform,
+                                          float maxDistance)
+        {
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(triangle, triangleTransform, compound, compoundTransform, maxDistance))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                if (WithinDistance(in blobCollider, math.mul(compoundTransform, blobTransform), in triangle, in triangleTransform, maxDistance))
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool DistanceBetween(in CompoundCollider compound,
+                                           in RigidTransform compoundTransform,
+                                           in TriangleCollider triangle,
+                                           in RigidTransform triangleTransform,
+                                           float maxDistance,
+                                           out ColliderDistanceResult result)
+        {
+            bool hit        = false;
+            result          = default;
+            result.distance = float.MaxValue;
+            ref var blob    = ref compound.compoundColliderBlob.Value;
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(triangle, triangleTransform, compound, compoundTransform, maxDistance))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                bool newHit = DistanceBetween(in blobCollider,
+                                              math.mul(compoundTransform, blobTransform),
+                                              in triangle,
+                                              in triangleTransform,
+                                              maxDistance,
+                                              out var newResult);
+
+                newResult.subColliderIndexA  = i;
+                newHit                      &= newResult.distance < result.distance;
+                hit                         |= newHit;
+                result                       = newHit ? newResult : result;
+            }
+            return hit;
+        }
+
+        public static void DistanceBetweenAll<T>(in CompoundCollider compound,
+                                                 in RigidTransform compoundTransform,
+                                                 in TriangleCollider triangle,
+                                                 in RigidTransform triangleTransform,
+                                                 float maxDistance,
+                                                 ref T processor) where T : unmanaged, IDistanceBetweenAllProcessor
+        {
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(triangle, triangleTransform, compound, compoundTransform, maxDistance))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                bool newHit = DistanceBetween(in blobCollider,
+                                              math.mul(compoundTransform, blobTransform),
+                                              in triangle,
+                                              in triangleTransform,
+                                              maxDistance,
+                                              out var newResult);
+
+                newResult.subColliderIndexA = i;
+
+                if (newHit)
+                    processor.Execute(in newResult);
+            }
+        }
+
+        public static bool ColliderCast(in TriangleCollider triangleToCast,
+                                        in RigidTransform castStart,
+                                        float3 castEnd,
+                                        in CompoundCollider targetCompound,
+                                        in RigidTransform targetCompoundTransform,
+                                        out ColliderCastResult result)
+        {
+            bool hit        = false;
+            result          = default;
+            result.distance = float.MaxValue;
+            if (AreOverlapping(in targetCompound, in targetCompoundTransform, in triangleToCast, in castStart))
+            {
+                return false;
+            }
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(Physics.AabbFrom(triangleToCast, in castStart, castEnd), targetCompound, targetCompoundTransform))
+            {
+                targetCompound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                bool newHit = ColliderCast(in triangleToCast, in castStart, castEnd, in blobCollider,
+                                           math.mul(targetCompoundTransform, blobTransform),
+                                           out var newResult);
+
+                newResult.subColliderIndexOnTarget  = i;
+                newHit                             &= newResult.distance < result.distance;
+                hit                                |= newHit;
+                result                              = newHit ? newResult : result;
+            }
+            return hit;
+        }
+
+        public static bool ColliderCast(in CompoundCollider compoundToCast,
+                                        in RigidTransform castStart,
+                                        float3 castEnd,
+                                        in TriangleCollider targetTriangle,
+                                        in RigidTransform targetTriangleTransform,
+                                        out ColliderCastResult result)
+        {
+            bool hit        = false;
+            result          = default;
+            result.distance = float.MaxValue;
+            if (AreOverlapping(in compoundToCast, in castStart, in targetTriangle, in targetTriangleTransform))
+            {
+                return false;
+            }
+            var triangleSweptAabb = Physics.AabbFrom(targetTriangle, targetTriangleTransform, targetTriangleTransform.pos - (castEnd - castStart.pos));
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(triangleSweptAabb, compoundToCast, castStart))
+            {
+                compoundToCast.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                var  start  = math.mul(castStart, blobTransform);
+                bool newHit = ColliderCast(in blobCollider,
+                                           start, start.pos + (castEnd - castStart.pos),
+                                           in targetTriangle,
+                                           in targetTriangleTransform,
+                                           out var newResult);
+
+                newResult.subColliderIndexOnCaster  = i;
+                newHit                             &= newResult.distance < result.distance;
+                hit                                |= newHit;
+                result                              = newHit ? newResult : result;
+            }
+            return hit;
+        }
+
+        public static UnitySim.ContactsBetweenResult UnityContactsBetween(in CompoundCollider compound,
+                                                                          in RigidTransform compoundTransform,
+                                                                          in TriangleCollider triangle,
+                                                                          in RigidTransform triangleTransform,
+                                                                          in ColliderDistanceResult distanceResult)
+        {
+            compound.GetScaledStretchedSubCollider(distanceResult.subColliderIndexA, out var collider, out var colliderTransform);
+            colliderTransform = math.mul(compoundTransform, colliderTransform);
+            return collider.type switch
+                   {
+                       ColliderType.Sphere => ContactManifoldHelpers.GetSingleContactManifold(in distanceResult),
+                       ColliderType.Capsule => CapsuleTriangle.UnityContactsBetween(in triangle, in triangleTransform, in collider.m_capsule, in colliderTransform,
+                                                                                    distanceResult.ToFlipped()).ToFlipped(),
+                       ColliderType.Box => BoxTriangle.UnityContactsBetween(in triangle, in triangleTransform, in collider.m_box, in colliderTransform,
+                                                                            distanceResult.ToFlipped()).ToFlipped(),
+                       _ => ContactManifoldHelpers.GetSingleContactManifold(in distanceResult)
+                   };
+        }
+
+        // We use a reduced set dispatch here so that Burst doesn't have to try to make these methods re-entrant.
+        private static bool AreOverlapping(in Collider collider,
+                                           in RigidTransform colliderTransform,
+                                           in TriangleCollider triangle,
+                                           in RigidTransform triangleTransform)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereTriangle.AreOverlapping(in triangle, in triangleTransform, in collider.m_sphere, in colliderTransform);
+                case ColliderType.Capsule:
+                    return CapsuleTriangle.AreOverlapping(in triangle, in triangleTransform, in collider.m_capsule, in colliderTransform);
+                case ColliderType.Box:
+                    return BoxTriangle.AreOverlapping(in triangle, in triangleTransform, in collider.m_box, in colliderTransform);
+                default:
+                    return false;
+            }
+        }
+        private static bool WithinDistance(in Collider collider,
+                                           in RigidTransform colliderTransform,
+                                           in TriangleCollider triangle,
+                                           in RigidTransform triangleTransform,
+                                           float maxDistance)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereTriangle.WithinDistance(in triangle, in triangleTransform, in collider.m_sphere, in colliderTransform, maxDistance);
+                case ColliderType.Capsule:
+                    return CapsuleTriangle.WithinDistance(in triangle, in triangleTransform, in collider.m_capsule, in colliderTransform, maxDistance);
+                case ColliderType.Box:
+                    return BoxTriangle.WithinDistance(in triangle, in triangleTransform, in collider.m_box, in colliderTransform, maxDistance);
+                default:
+                    return false;
+            }
+        }
+        private static bool DistanceBetween(in Collider collider,
+                                            in RigidTransform colliderTransform,
+                                            in TriangleCollider triangle,
+                                            in RigidTransform triangleTransform,
+                                            float maxDistance,
+                                            out ColliderDistanceResult result)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    var sphereResult = SphereTriangle.DistanceBetween(in triangle,
+                                                                      in triangleTransform,
+                                                                      in collider.m_sphere,
+                                                                      in colliderTransform,
+                                                                      maxDistance,
+                                                                      out result);
+                    result.FlipInPlace();
+                    return sphereResult;
+                case ColliderType.Capsule:
+                    var capsuleResult = CapsuleTriangle.DistanceBetween(in triangle,
+                                                                        in triangleTransform,
+                                                                        in collider.m_capsule,
+                                                                        in colliderTransform,
+                                                                        maxDistance,
+                                                                        out result);
+                    result.FlipInPlace();
+                    return capsuleResult;
+                case ColliderType.Box:
+                    var boxResult = BoxTriangle.DistanceBetween(in triangle,
+                                                                in triangleTransform,
+                                                                in collider.m_box,
+                                                                in colliderTransform,
+                                                                maxDistance,
+                                                                out result);
+                    result.FlipInPlace();
+                    return boxResult;
+                default:
+                    result = default;
+                    return false;
+            }
+        }
+
+        private static bool ColliderCast(in TriangleCollider triangleToCast,
+                                         in RigidTransform castStart,
+                                         float3 castEnd,
+                                         in Collider target,
+                                         in RigidTransform targetTransform,
+                                         out ColliderCastResult result)
+        {
+            switch (target.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereTriangle.ColliderCast(in triangleToCast, in castStart, castEnd, in target.m_sphere, in targetTransform, out result);
+                case ColliderType.Capsule:
+                    return CapsuleTriangle.ColliderCast(in triangleToCast, in castStart, castEnd, in target.m_capsule, in targetTransform, out result);
+                case ColliderType.Box:
+                    return BoxTriangle.ColliderCast(in triangleToCast, in castStart, castEnd, in target.m_box, in targetTransform, out result);
+                default:
+                    result = default;
+                    return false;
+            }
+        }
+
+        private static bool ColliderCast(in Collider colliderToCast,
+                                         in RigidTransform castStart,
+                                         float3 castEnd,
+                                         in TriangleCollider targetTriangle,
+                                         in RigidTransform targetTriangleTransform,
+                                         out ColliderCastResult result)
+        {
+            switch (colliderToCast.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereTriangle.ColliderCast(in colliderToCast.m_sphere, in castStart, castEnd, in targetTriangle, in targetTriangleTransform, out result);
+                case ColliderType.Capsule:
+                    return CapsuleTriangle.ColliderCast(in colliderToCast.m_capsule, in castStart, castEnd, in targetTriangle, in targetTriangleTransform, out result);
+                case ColliderType.Box:
+                    return BoxTriangle.ColliderCast(in colliderToCast.m_box, in castStart, castEnd, in targetTriangle, in targetTriangleTransform, out result);
+                default:
+                    result = default;
+                    return false;
+            }
+        }
+    }
+}
+

@@ -1,0 +1,19 @@
+{
+    "name": "HSE.Serialization.Wire.Entities",
+    "references": [
+        "HSE.Editor.Attributes",
+        "HSE.Serialization.Wire",
+        "HSE.Serialization.Wire.Generated",
+        "HSE.Mechanics.Components",
+        "Unity.Entities",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "HSE.Graph.Components"
+    ],
+    "allowUnsafeCode": true,
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ]
+}

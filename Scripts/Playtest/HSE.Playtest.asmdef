@@ -1,0 +1,32 @@
+{
+    "name": "HSE.Playtest",
+    "rootNamespace": "HSE.Playtest",
+    "references": [
+        "Unity.Entities",
+        "Unity.Transforms",
+        "Unity.Scenes",
+        "Unity.Physics",
+        "Unity.NetCode",
+        "Unity.CharacterController",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.Burst",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "HSE.Mechanics.Components",
+        "HSE.Graph.Components"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR",
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,28 @@
+{
+  "name": "com.hseverse.mods",
+  "version": "1.0.0",
+  "displayName": "HSE Metaverse Mods",
+  "description": "CodeCraft location SDK for HSE Metaverse: visual ECS graph authoring, versioned component serialization, hybrid UI, local playtest and location export.",
+  "documentationUrl": "https://github.com/BurgProject/HSEVirtualSpaceMods#readme",
+  "changelogUrl": "https://github.com/BurgProject/HSEVirtualSpaceMods/blob/HEAD/CHANGELOG.md",
+  "bugs": { "url": "https://github.com/BurgProject/HSEVirtualSpaceMods/issues" },
+  "repository": { "type": "git", "url": "https://github.com/BurgProject/HSEVirtualSpaceMods.git" },
+  "keywords": ["codecraft", "metaverse", "dots", "entities", "visual-scripting"],
+  "unity": "6000.3",
+  "unityRelease": "18f1",
+  "dependencies": {
+    "com.unity.ugui": "2.0.0",
+    "com.unity.entities": "1.4.8",
+    "com.unity.entities.graphics": "1.4.21",
+    "com.unity.physics": "1.4.6",
+    "com.unity.charactercontroller": "1.4.1",
+    "com.unity.render-pipelines.universal": "17.3.0",
+    "com.unity.render-pipelines.universal-config": "17.3.0",
+    "com.unity.netcode": "1.13.2",
+    "com.unity.inputsystem": "1.19.0",
+    "com.unity.postprocessing": "3.5.4",
+    "com.unity.burst": "1.8.29",
+    "com.unity.editorcoroutines": "1.1.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
+  }
+}

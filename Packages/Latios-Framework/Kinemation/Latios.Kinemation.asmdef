@@ -1,0 +1,56 @@
+{
+    "name": "Latios.Kinemation",
+    "rootNamespace": "Latios.Kinemation",
+    "references": [
+        "Latios.Core",
+        "Latios.Transforms",
+        "Latios.Calci",
+        "Latios.Psyshock",
+        "ACL_Unity",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Deformations",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid",
+        "Unity.Mathematics",
+        "Unity.Transforms",
+        "Unity.Mathematics.Extensions",
+        "Unity.Mathematics.Extensions.Hybrid",
+        "Unity.Entities.Graphics",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.Scenes"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "9.9.9",
+            "define": "HDRP_10_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "9.9.9",
+            "define": "URP_10_0_0_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.core",
+            "expression": "9.9.9",
+            "define": "SRP_10_0_0_OR_NEWER"
+        },
+		{
+            "name": "com.unity.entities",
+            "expression": "1.4.0",
+            "define": "ENTITIES_1_4"
+        }
+    ],
+    "noEngineReferences": false
+}

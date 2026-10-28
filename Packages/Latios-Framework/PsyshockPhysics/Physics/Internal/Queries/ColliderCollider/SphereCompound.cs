@@ -1,0 +1,288 @@
+using System;
+using Unity.Burst;
+using Unity.Mathematics;
+
+namespace Latios.Psyshock
+{
+    internal static class SphereCompound
+    {
+        public static bool AreOverlapping(in CompoundCollider compound,
+                                          in RigidTransform compoundTransform,
+                                          in SphereCollider sphere,
+                                          in RigidTransform sphereTransform)
+        {
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(sphere, sphereTransform, compound, compoundTransform, 0f))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                if (AreOverlapping(in blobCollider, math.mul(compoundTransform, blobTransform), in sphere, in sphereTransform))
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool WithinDistance(in CompoundCollider compound,
+                                          in RigidTransform compoundTransform,
+                                          in SphereCollider sphere,
+                                          in RigidTransform sphereTransform,
+                                          float maxDistance)
+        {
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(sphere, sphereTransform, compound, compoundTransform, maxDistance))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                if (WithinDistance(in blobCollider, math.mul(compoundTransform, blobTransform), in sphere, in sphereTransform, maxDistance))
+                    return true;
+            }
+            return false;
+        }
+
+        public static bool DistanceBetween(in CompoundCollider compound,
+                                           in RigidTransform compoundTransform,
+                                           in SphereCollider sphere,
+                                           in RigidTransform sphereTransform,
+                                           float maxDistance,
+                                           out ColliderDistanceResult result)
+        {
+            bool hit        = false;
+            result          = default;
+            result.distance = float.MaxValue;
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(sphere, sphereTransform, compound, compoundTransform, maxDistance))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                bool newHit = DistanceBetween(in blobCollider,
+                                              math.mul(compoundTransform, blobTransform),
+                                              in sphere,
+                                              in sphereTransform,
+                                              math.min(result.distance, maxDistance),
+                                              out var newResult);
+
+                newResult.subColliderIndexA  = i;
+                newHit                      &= newResult.distance < result.distance;
+                hit                         |= newHit;
+                result                       = newHit ? newResult : result;
+            }
+            return hit;
+        }
+
+        public static void DistanceBetweenAll<T>(in CompoundCollider compound,
+                                                 in RigidTransform compoundTransform,
+                                                 in SphereCollider sphere,
+                                                 in RigidTransform sphereTransform,
+                                                 float maxDistance,
+                                                 ref T processor) where T : unmanaged, IDistanceBetweenAllProcessor
+        {
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(sphere, sphereTransform, compound, compoundTransform, maxDistance))
+            {
+                compound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                bool newHit = DistanceBetween(in blobCollider,
+                                              math.mul(compoundTransform, blobTransform),
+                                              in sphere,
+                                              in sphereTransform,
+                                              maxDistance,
+                                              out var newResult);
+
+                newResult.subColliderIndexA = i;
+
+                if (newHit)
+                    processor.Execute(in newResult);
+            }
+        }
+
+        public static bool ColliderCast(in SphereCollider sphereToCast,
+                                        in RigidTransform castStart,
+                                        float3 castEnd,
+                                        in CompoundCollider targetCompound,
+                                        in RigidTransform targetCompoundTransform,
+                                        out ColliderCastResult result)
+        {
+            bool hit        = false;
+            result          = default;
+            result.distance = float.MaxValue;
+            if (AreOverlapping(in targetCompound, in targetCompoundTransform, in sphereToCast, in castStart))
+            {
+                return false;
+            }
+
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(Physics.AabbFrom(sphereToCast, in castStart, castEnd), targetCompound, targetCompoundTransform))
+            {
+                targetCompound.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                bool newHit = ColliderCast(in sphereToCast,
+                                           in castStart,
+                                           castEnd,
+                                           in blobCollider,
+                                           math.mul(targetCompoundTransform, blobTransform),
+                                           out var newResult);
+
+                newResult.subColliderIndexOnTarget  = i;
+                newHit                             &= newResult.distance < result.distance;
+                hit                                |= newHit;
+                result                              = newHit ? newResult : result;
+            }
+            return hit;
+        }
+
+        public static bool ColliderCast(in CompoundCollider compoundToCast,
+                                        in RigidTransform castStart,
+                                        float3 castEnd,
+                                        in SphereCollider targetSphere,
+                                        in RigidTransform targetSphereTransform,
+                                        out ColliderCastResult result)
+        {
+            bool hit        = false;
+            result          = default;
+            result.distance = float.MaxValue;
+            if (AreOverlapping(in compoundToCast, in castStart, in targetSphere, in targetSphereTransform))
+            {
+                return false;
+            }
+            var sphereSweptAabb = Physics.AabbFrom(targetSphere, targetSphereTransform, targetSphereTransform.pos - (castEnd - castStart.pos));
+            foreach (var i in new PointRayCompound.CompoundAabbEnumerator(sphereSweptAabb, compoundToCast, castStart))
+            {
+                compoundToCast.GetScaledStretchedSubCollider(i, out var blobCollider, out var blobTransform);
+                var  start  = math.mul(castStart, blobTransform);
+                bool newHit = ColliderCast(in blobCollider,
+                                           start, start.pos + (castEnd - castStart.pos),
+                                           in targetSphere,
+                                           in targetSphereTransform,
+                                           out var newResult);
+
+                newResult.subColliderIndexOnCaster  = i;
+                newHit                             &= newResult.distance < result.distance;
+                hit                                |= newHit;
+                result                              = newHit ? newResult : result;
+            }
+            return hit;
+        }
+
+        public static UnitySim.ContactsBetweenResult UnityContactsBetween(in CompoundCollider compound,
+                                                                          in RigidTransform compoundTransform,
+                                                                          in SphereCollider sphere,
+                                                                          in RigidTransform sphereTransform,
+                                                                          in ColliderDistanceResult distanceResult)
+        {
+            return ContactManifoldHelpers.GetSingleContactManifold(in distanceResult);
+        }
+
+        public static int LatiosContactsBetween(Span<LatiosSim.Contact>   contacts,
+                                                float3 contactNormal,
+                                                in CompoundCollider compound,
+                                                in RigidTransform compoundTransform,
+                                                in SphereCollider sphere,
+                                                in RigidTransform sphereTransform,
+                                                in ColliderDistanceResult distanceResult)
+        {
+            compound.GetScaledStretchedSubCollider(distanceResult.subColliderIndexA, out var blobCollider, out var blobTransform);
+            var subTransform = math.mul(compoundTransform, blobTransform);
+            switch (blobCollider.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereSphere.LatiosContactsBetween(contacts, contactNormal, in blobCollider.m_sphere, in subTransform, in sphere, in sphereTransform, in distanceResult);
+                case ColliderType.Capsule:
+                    return SphereCapsule.LatiosContactsBetween(contacts, contactNormal, in blobCollider.m_capsule, in subTransform, in sphere, in sphereTransform,
+                                                               in distanceResult);
+                case ColliderType.Box:
+                    return SphereBox.LatiosContactsBetween(contacts, contactNormal, in blobCollider.m_box, in subTransform, in sphere, in sphereTransform, in distanceResult);
+            }
+            return 0;
+        }
+
+        // We use a reduced set dispatch here so that Burst doesn't have to try to make these methods re-entrant.
+        private static bool AreOverlapping(in Collider collider,
+                                           in RigidTransform colliderTransform,
+                                           in SphereCollider sphere,
+                                           in RigidTransform sphereTransform)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereSphere.AreOverlapping(in collider.m_sphere, in colliderTransform, in sphere, in sphereTransform);
+                case ColliderType.Capsule:
+                    return SphereCapsule.AreOverlapping(in collider.m_capsule, in colliderTransform, in sphere, in sphereTransform);
+                case ColliderType.Box:
+                    return SphereBox.AreOverlapping(in collider.m_box, in colliderTransform, in sphere, in sphereTransform);
+                default:
+                    return false;
+            }
+        }
+        private static bool WithinDistance(in Collider collider,
+                                           in RigidTransform colliderTransform,
+                                           in SphereCollider sphere,
+                                           in RigidTransform sphereTransform,
+                                           float maxDistance)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereSphere.WithinDistance(in collider.m_sphere, in colliderTransform, in sphere, in sphereTransform, maxDistance);
+                case ColliderType.Capsule:
+                    return SphereCapsule.WithinDistance(in collider.m_capsule, in colliderTransform, in sphere, in sphereTransform, maxDistance);
+                case ColliderType.Box:
+                    return SphereBox.WithinDistance(in collider.m_box, in colliderTransform, in sphere, in sphereTransform, maxDistance);
+                default:
+                    return false;
+            }
+        }
+        private static bool DistanceBetween(in Collider collider,
+                                            in RigidTransform colliderTransform,
+                                            in SphereCollider sphere,
+                                            in RigidTransform sphereTransform,
+                                            float maxDistance,
+                                            out ColliderDistanceResult result)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereSphere.DistanceBetween(in collider.m_sphere, in colliderTransform, in sphere, in sphereTransform, maxDistance, out result);
+                case ColliderType.Capsule:
+                    return SphereCapsule.DistanceBetween(in collider.m_capsule, in colliderTransform, in sphere, in sphereTransform, maxDistance, out result);
+                case ColliderType.Box:
+                    return SphereBox.DistanceBetween(in collider.m_box, in colliderTransform, in sphere, in sphereTransform, maxDistance, out result);
+                default:
+                    result = default;
+                    return false;
+            }
+        }
+
+        private static bool ColliderCast(in SphereCollider sphereToCast,
+                                         in RigidTransform castStart,
+                                         float3 castEnd,
+                                         in Collider target,
+                                         in RigidTransform targetTransform,
+                                         out ColliderCastResult result)
+        {
+            switch (target.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereSphere.ColliderCast(in sphereToCast, in castStart, castEnd, in target.m_sphere, in targetTransform, out result);
+                case ColliderType.Capsule:
+                    return SphereCapsule.ColliderCast(in sphereToCast, in castStart, castEnd, in target.m_capsule, in targetTransform, out result);
+                case ColliderType.Box:
+                    return SphereBox.ColliderCast(in sphereToCast, in castStart, castEnd, in target.m_box, in targetTransform, out result);
+                default:
+                    result = default;
+                    return false;
+            }
+        }
+
+        private static bool ColliderCast(in Collider colliderToCast,
+                                         in RigidTransform castStart,
+                                         float3 castEnd,
+                                         in SphereCollider targetSphere,
+                                         in RigidTransform targetSphereTransform,
+                                         out ColliderCastResult result)
+        {
+            switch (colliderToCast.type)
+            {
+                case ColliderType.Sphere:
+                    return SphereSphere.ColliderCast(in colliderToCast.m_sphere, in castStart, castEnd, in targetSphere, in targetSphereTransform, out result);
+                case ColliderType.Capsule:
+                    return SphereCapsule.ColliderCast(in colliderToCast.m_capsule, in castStart, castEnd, in targetSphere, in targetSphereTransform, out result);
+                case ColliderType.Box:
+                    return SphereBox.ColliderCast(in colliderToCast.m_box, in castStart, castEnd, in targetSphere, in targetSphereTransform, out result);
+                default:
+                    result = default;
+                    return false;
+            }
+        }
+    }
+}
+

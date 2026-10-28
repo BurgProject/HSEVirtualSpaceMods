@@ -1,0 +1,1126 @@
+# Changelog
+
+All notable changes to this package will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic
+Versioning](http://semver.org/spec/v2.0.0.html).
+
+You can find changelogs for the individual modules in the [official Latios
+Framework Documentation
+repository](https://github.com/Dreaming381/Latios-Framework-Documentation).
+
+## [0.15.12] – 2026-7-25
+
+Officially supports Entities [1.4.8]
+
+### Changed
+
+-   Updated Psyshock to v0.15.12
+-   Updated Kinemation to v0.15.12
+
+## [0.15.11] – 2026-7-18
+
+Officially supports Entities [1.4.8]
+
+### Changed
+
+-   Updated Core to v0.15.11
+-   Updated Calci to v0.15.11
+-   Updated Psyshock to v0.15.11
+-   Updated Kinemation to v0.15.11
+
+## [0.15.10] – 2026-7-11
+
+Officially supports Entities [1.4.7]
+
+### Changed
+
+-   Updated Core to v0.15.10
+-   Updated QVVS Transforms to v0.15.10
+-   Updated Psyshock to v0.15.10
+-   Updated Unika to v0.15.10
+
+## [0.15.9] – 2026-6-27
+
+Officially supports Entities [1.4.7]
+
+### Changed
+
+-   Updated Psyshock to v0.15.9
+-   Updated Kinemation to v0.15.9
+
+## [0.15.8] – 2026-6-20
+
+Officially supports Entities [1.4.7]
+
+### Changed
+
+-   Updated Core to v0.15.8
+-   Updated QVVS Transforms to v0.15.8
+-   Updated Psyshock to v0.15.8
+-   Updated Kinemation to v0.15.8
+
+## [0.15.7] – 2026-6-13
+
+Officially supports Entities [1.4.6]
+
+### Changed
+
+-   Updated Psyshock to v0.15.7
+-   Updated Myri to v0.15.7
+-   Updated Kinemation to v0.15.7
+
+## [0.15.6] – 2026-6-7
+
+Officially supports Entities [1.4.6]
+
+### Changed
+
+-   Updated Core to v0.15.6
+-   Updated Psyshock to v0.15.6
+
+## [0.15.5] – 2026-5-23
+
+Officially supports Entities [1.4.6]
+
+### Changed
+
+-   Updated Psyshock to v0.15.5
+-   Updated Unika to v0.15.5
+-   Updated Calligraphics to v0.15.5
+
+## [0.15.4] – 2026-5-16
+
+Officially supports Entities [1.4.6]
+
+### Changed
+
+-   Updated Core to v0.15.4
+-   Updated Aux ECS to v0.15.4
+-   Updated QVVS Transforms to v0.15.4
+-   Updated Myri to v0.15.4
+-   Updated Calligraphics to v0.15.4
+
+## [0.15.3] – 2026-5-2
+
+Officially supports Entities [1.4.6]
+
+### Changed
+
+-   Updated Core to v0.15.3
+-   Updated QVVS Transforms to v0.15.3
+-   Updated Myri to v0.15.3
+-   Updated Kinemation to v0.15.3
+-   Updated Calligraphics to v0.15.3
+
+## [0.15.2] – 2026-4-25
+
+Officially supports Entities [1.4.6]
+
+### Changed
+
+-   Updated Core to v0.15.2
+-   Updated Kinemation to v0.15.2
+-   Updated Calligraphics to v0.15.2
+-   Updated LifeFX to v0.15.2
+
+## [0.15.1] – 2026-4-19
+
+Officially supports Entities [1.4.4] – [1.4.5]
+
+### Changed
+
+-   Updated Core to v0.15.1
+-   Updated QVVS Transforms to v0.15.1
+-   Updated Myri to v0.15.1
+-   Updated Kinemation to v0.15.1
+-   Updated Calligraphics to v0.15.1
+
+### Removed
+
+-   Removed support for Unity 6.0 LTS
+
+## [0.15.0] – 2026-4-12
+
+Officially supports Entities [1.4.4] – [1.4.5]
+
+### Added
+
+-   Added Aux ECS
+
+### Changed
+
+-   Updated Core to v0.15.0
+-   Updated QVVS Transforms to v0.15.0
+-   Updated Calci to v0.15.0
+-   Updated Psyshock to v0.15.0
+-   Updated Myri to v0.15.0
+-   Updated Kinemation to v0.15.0
+-   Updated Calligraphics to v0.15.0
+-   Updated LifeFX to v0.15.0
+-   Updated Unika to v0.15.0
+
+## [0.14.15] – 2026-3-14
+
+Officially supports Entities [1.4.4] – [1.4.5]
+
+### Changed
+
+-   Updated Psyshock to v0.14.15
+-   Updated Kinemation to v0.14.15
+
+## [0.14.14] – 2026-3-7
+
+Officially supports Entities [1.4.4] – [1.4.5]
+
+### Changed
+
+-   Updated Psyshock to v0.14.14
+
+## [0.14.13] – 2026-3-1
+
+Officially supports Entities [1.4.4] – [1.4.5]
+
+### Changed
+
+-   Updated Kinemation to v0.14.13
+
+## [0.14.12] – 2026-2-21
+
+Officially supports Entities [1.4.4]
+
+### Changed
+
+-   Updated Psyshock to v0.14.12
+-   Updated Kinemation to v0.14.12
+
+## [0.14.11] – 2026-1-31
+
+Officially supports Entities [1.4.4]
+
+### Changed
+
+-   Updated Core to v0.14.11
+
+## [0.14.10] – 2026-1-17
+
+Officially supports Entities [1.4.4]
+
+### Changed
+
+-   Updated Core to v0.14.10
+-   Updated Kinemation to v0.14.10
+
+## [0.14.9] – 2026-1-11
+
+Officially supports Entities [1.4.4]
+
+### Changed
+
+-   Updated Core to v0.14.9
+-   Updated Kinemation to v0.14.9
+-   Updated Calligraphics to v0.14.9
+
+## [0.14.8] – 2026-1-3
+
+Officially supports Entities [1.4.3]
+
+### Changed
+
+-   Updated Core to v0.14.8
+-   Updated Transforms to v0.14.8
+-   Updated Calci to v0.14.8
+-   Updated Psyshock to v0.14.8
+-   Updated Kinemation to v0.14.8
+-   Updated LifeFX to v0.14.8
+
+## [0.14.6] – 2025-12-20
+
+Officially supports Entities [1.4.3]
+
+### Changed
+
+-   Updated Core to v0.14.6
+-   Updated Transforms to v0.14.6
+-   Updated Psyshock to v0.14.6
+-   Updated Myri to v0.14.6
+-   Updated Kinemation to v0.14.6
+-   Updated Calligraphics to v0.14.6
+-   Updated LifeFX to v0.14.6
+
+## [0.14.5] – 2025-12-13
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.14.5
+-   Updated Calci to v0.14.5
+-   Updated Psyshock to v0.14.5
+-   Updated Myri to v0.14.5
+-   Updated Kinemation to v0.14.5
+-   Updated Calligraphics to v0.14.5
+
+## [0.14.4] – 2025-11-16
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.14.4
+-   Updated Kinemation to v0.14.4
+
+## [0.14.3] – 2025-11-15
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.14.3
+-   Updated Psyshock to v0.14.3
+-   Updated Kinemation to v0.14.3
+
+## [0.14.2] – 2025-11-9
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.14.2
+-   Updated Myri to v0.14.2
+-   Updated Kinemation to v0.14.2
+
+## [0.14.1] – 2025-11-2
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.14.1
+-   Updated Psyshock to v0.14.1
+-   Updated Kinemation to v0.14.1
+-   Updated Unika to v0.14.1
+
+## [0.14.0] – 2025-10-18
+
+Officially supports Entities [1.3.14]
+
+### Added
+
+-   Added Calci
+
+### Changed
+
+-   Updated Core to v0.14.0
+-   Updated QVVS Transforms to v0.14.0
+-   Updated Psyshock to v0.14.0
+-   Updated Myri to v0.14.0
+-   Updated Kinemation to v0.14.0
+-   Updated Calligraphics to v0.14.0
+-   Updated LifeFX to v0.14.0
+-   Updated Unika to v0.14.0
+
+## [0.13.7] – 2025-9-13
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.13.7
+-   Updated Psyshock to v0.13.7
+
+## [0.13.6] – 2025-9-6
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.13.6
+
+## [0.13.5] – 2025-8-30
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Psyshock to v0.13.5
+-   Updated Calligraphics to v0.13.5
+
+## [0.13.4] – 2025-8-23
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Psyshock to v0.13.4
+-   Updated Kinemation to v0.13.4
+
+## [0.13.3] – 2025-8-16
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.13.3
+-   Updated Psyshock to v0.13.3
+
+## [0.13.2] – 2025-8-3
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Psyshock to v0.13.2
+-   Updated Kinemation to v0.13.2
+
+## [0.13.1] – 2025-8-2
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.13.1
+-   Updated Psyshock to v0.13.1
+-   Updated Kinemation to v0.13.1
+
+## [0.13.0] – 2025-7-6
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.13.0
+-   Updated QVVS Transforms to v0.13.0
+-   Updated Psyshock to v0.13.0
+-   Updated Myri to v0.13.0
+-   Updated Kinemation to v0.13.0
+-   Updated LifeFX to v0.13.0
+
+## [0.12.7] – 2025-4-26
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Psyshock to v0.12.7
+-   Updated Kinemation to v0.12.7
+
+## [0.12.6] – 2025-4-20
+
+Officially supports Entities [1.3.14]
+
+### Changed
+
+-   Updated Core to v0.12.6
+-   Updated QVVS Transforms to v0.12.6
+-   Updated Kinemation to v0.12.6
+
+## [0.12.5] – 2025-4-12
+
+Officially supports Entities [1.3.9]
+
+### Changed
+
+-   Updated Core to v0.12.5
+-   Updated Psyshock to v0.12.5
+-   Updated Unika to v0.12.5
+
+## [0.12.4] – 2025-4-5
+
+Officially supports Entities [1.3.9]
+
+### Changed
+
+-   Updated Kinemation to v0.12.4
+-   Updated Unika to v0.12.4
+
+## [0.12.3] – 2025-3-29
+
+Officially supports Entities [1.3.9]
+
+### Changed
+
+-   Updated Core to v0.12.3
+-   Updated Kinemation to v0.12.3
+
+## [0.12.2] – 2025-3-22
+
+Officially supports Entities [1.3.9]
+
+### Changed
+
+-   Updated Core to v0.12.2
+-   Updated Psyshock to v0.12.2
+-   Updated Kinemation to v0.12.2
+
+## [0.12.1] – 2025-3-8
+
+Officially supports Entities [1.3.9]
+
+### Changed
+
+-   Updated Core to v0.12.1
+-   Updated Psyshock to v0.12.1
+-   Updated Kinemation to v0.12.1
+
+## [0.12.0] – 2025-2-23
+
+Officially supports Entities [1.3.9]
+
+### Added
+
+-   Added LifeFX
+-   Added Unika
+
+### Changed
+
+-   Updated Core to v0.12.0
+-   Updated QVVS Transforms to v0.12.0
+-   Updated Psyshock to v0.12.0
+-   Updated Myri to v0.12.0
+-   Updated Kinemation to v0.12.0
+-   Updated Calligraphics to v0.12.0
+
+### Removed
+
+-   Removed support for Unity 2022 LTS
+-   Removed Mimic, as all functionality has been migrated to the Add-Ons package
+
+## [0.11.5] – 2024-11-2
+
+Officially supports Entities [1.3.5]
+
+### Changed
+
+-   Updated Psyshock to v0.11.5
+-   Updated Kinemation to v0.11.5
+
+## [0.11.4] – 2024-10-19
+
+Officially supports Entities [1.3.5]
+
+### Changed
+
+-   Updated Kinemation to v0.11.4
+
+## [0.11.3] – 2024-10-13
+
+Officially supports Entities [1.3.2]
+
+### Changed
+
+-   Updated Core to v0.11.3
+-   Updated Kinemation to v0.11.3
+
+## [0.11.2] – 2024-10-13
+
+Officially supports Entities [1.3.2]
+
+### Changed
+
+-   Updated Kinemation to v0.11.2
+
+## [0.11.1] – 2024-10-5
+
+Officially supports Entities [1.3.2]
+
+### Changed
+
+-   Updated Core to v0.11.1
+-   Updated Psyshock to v0.11.1
+
+## [0.11.0] – 2024-9-29
+
+Officially supports Entities [1.3.2]
+
+### Changed
+
+-   Updated Core to v0.11.0
+-   Updated QVVS Transforms to v0.11.0
+-   Updated Psyshock to v0.11.0
+-   Updated Kinemation to v0.11.0
+-   Updated Calligraphics to v0.11.0
+
+## [0.10.7] – 2024-8-25
+
+Officially supports Entities [1.2.1] – [1.2.4]
+
+### Changed
+
+-   Updated Core to v0.10.7
+-   Updated Psyshock to v0.10.7
+-   Updated Kinemation to v0.10.7
+
+## [0.10.6] – 2024-8-3
+
+Officially supports Entities [1.2.1] – [1.2.3]
+
+### Changed
+
+-   Updated Core to v0.10.6
+-   Updated Calligraphics to v0.10.6
+
+## [0.10.5] – 2024-7-28
+
+Officially supports Entities [1.2.1] – [1.2.3]
+
+### Changed
+
+-   Updated Kinemation to v0.10.5
+
+## [0.10.4] – 2024-7-20
+
+Officially supports Entities [1.2.1] – [1.2.3]
+
+### Changed
+
+-   Updated Core to v0.10.4
+-   Updated Psyshock to v0.10.4
+-   Updated Kinemation to v0.10.4
+
+## [0.10.3] – 2024-6-30
+
+Officially supports Entities [1.2.1] – [1.2.3]
+
+### Changed
+
+-   Updated Myri to v0.10.3
+-   Updated Kinemation to v0.10.3
+
+## [0.10.2] – 2024-6-22
+
+Officially supports Entities [1.2.1] – [1.2.3]
+
+### Changed
+
+-   Updated Core to v0.10.2
+-   Updated Psyshock to v0.10.2
+-   Updated Myri to v0.10.2
+-   Updated Kinemation to v0.10.2
+
+## [0.10.1] – 2024-6-9
+
+Officially supports Entities [1.2.1]
+
+### Changed
+
+-   Updated Core to v0.10.1
+-   Updated Psyshock to v0.10.1
+-   Updated Kinemation to v0.10.1
+
+## [0.10.0] – 2024-5-26
+
+Officially supports Entities [1.2.1]
+
+### Changed
+
+-   Updated Core to v0.10.0
+-   Updated QVVS Transforms to v0.10.0
+-   Updated Psyshock to v0.10.0
+-   Updated Myri to v0.10.0
+-   Updated Kinemation to v0.10.0
+-   Updated Calligraphics to v0.10.0
+-   Updated Mimic to v0.10.0
+
+## [0.9.4] – 2024-3-16
+
+Officially supports Entities [1.1.0-pre.3]
+
+### Changed
+
+-   Updated Psyshock to v0.9.4
+-   Updated Myri to v0.9.4
+
+## [0.9.3] – 2024-3-2
+
+Officially supports Entities [1.1.0-pre.3]
+
+### Changed
+
+-   Updated Kinemation to v0.9.3
+
+## [0.9.2] – 2024-2-4
+
+Officially supports Entities [1.1.0-pre.3]
+
+### Changed
+
+-   Updated Kinemation to v0.9.2
+-   Updated Mimic to v0.9.2
+
+## [0.9.1] – 2024-1-27
+
+Officially supports Entities [1.1.0-pre.3]
+
+### Changed
+
+-   Updated Core to v0.9.1
+-   Updated Psyshock to v0.9.1
+-   Updated Kinemation to v0.9.1
+
+## [0.9.0] – 2024-1-20
+
+Officially supports Entities [1.1.0-pre.3]
+
+### Added
+
+-   Mimic
+
+### Changed
+
+-   Updated Core to v0.9.0
+-   Updated QVVS Transforms to v0.9.0
+-   Updated Psyshock to v0.9.0
+-   Updated Myri to v0.9.0
+-   Updated Kinemation to v0.9.0
+-   Updated Calligraphics to v0.9.0
+
+## [0.8.6] – 2023-12-9
+
+Officially supports Entities [1.0.16]
+
+### Changed
+
+-   Updated Kinemation to v0.8.6
+
+## [0.8.5] – 2023-12-3
+
+Officially supports Entities [1.0.16]
+
+### Changed
+
+-   Updated Kinemation to v0.8.5
+
+## [0.8.4] – 2023-11-10
+
+Officially supports Entities [1.0.16]
+
+### Changed
+
+-   The minimum Editor version has been increased to 2022.3.13f1
+-   Updated Myri to v0.8.4
+-   Updated Calligraphics to v0.8.4
+
+## [0.8.3] – 2023-10-15
+
+Officially supports Entities [1.0.16]
+
+### Changed
+
+-   Updated Psyshock to v0.8.3
+-   Updated Kinemation to v0.8.3
+
+## [0.8.2] – 2023-10-8
+
+Officially supports Entities [1.0.16]
+
+### Changed
+
+-   Updated Myri to v0.8.2
+-   Updated Kinemation to v0.8.2
+
+## [0.8.1] – 2023-10-2
+
+Officially supports Entities [1.0.16]
+
+### Changed
+
+-   Updated QVVS Transforms to v0.8.1
+
+## [0.8.0] – 2023-9-23
+
+Officially supports Entities [1.0.16]
+
+### Added
+
+-   Calligraphics
+
+### Changed
+
+-   Updated Core to v0.8.0
+-   Updated QVVS Transforms to v0.8.0
+-   Updated Psyshock to v0.8.0
+-   Updated Myri to v0.8.0
+-   Updated Kinemation to v0.8.0
+
+## [0.7.7] – 2023-8-15
+
+Officially supports Entities [1.0.14]
+
+### Changed
+
+-   Updated Core to v0.7.7
+-   Updated Psyshock to v0.7.7
+-   Updated Kinemation to v0.7.7
+
+## [0.7.6] – 2023-7-9
+
+Officially supports Entities [1.0.11]
+
+### Changed
+
+-   Updated Core to v0.7.6
+
+## [0.7.5] – 2023-7-2
+
+Officially supports Entities [1.0.11]
+
+### Changed
+
+-   Updated Kinemation to v0.7.5
+
+## [0.7.4] – 2023-6-18
+
+Officially supports Entities [1.0.10]
+
+### Changed
+
+-   Updated Core to v0.7.4
+-   Updated Kinemation to v0.7.4
+
+## [0.7.3] – 2023-6-10
+
+Officially supports Entities [1.0.10]
+
+### Changed
+
+-   Updated Core to v0.7.3
+-   Updated Psyshock to v0.7.3
+
+## [0.7.2] – 2023-6-4
+
+Officially supports Entities [1.0.10]
+
+### Changed
+
+-   Updated Core to v0.7.2
+
+## [0.7.1] – 2023-6-3
+
+Officially supports Entities [1.0.10]
+
+### Changed
+
+-   Updated the minimum required Unity version to 2022.3.0f1
+-   Updated Core to v0.7.1
+-   Updated Psyshock to v0.7.1
+-   Updated Kinemation to v0.7.1
+
+## [0.7.0] – 2023-5-29
+
+Officially supports Entities [1.0.10]
+
+### Added
+
+-   QVVS Transforms
+
+### Changed
+
+-   Moved Documentation to
+    <https://github.com/Dreaming381/Latios-Framework-Documentation>
+-   Updated Core to v0.7.0
+-   Updated Psyshock to v0.7.0
+-   Updated Myri to v0.7.0
+-   Updated Kinemation to v0.7.0
+
+## [0.6.6] – 2023-3-13
+
+Officially supports Entities [1.0.0 prerelease 15]
+
+### Changed
+
+-   Updated Kinemation to v0.6.6
+
+## [0.6.5] – 2023-2-18
+
+Officially supports Entities [1.0.0 prerelease 15]
+
+### Changed
+
+-   Updated Core to v0.6.5
+-   Updated Psyshock to v0.6.5
+-   Updated Myri to v0.6.5
+-   Updated Kinemation to v0.6.5
+
+## [0.6.4] – 2022-12-29
+
+Officially supports Entities [1.0.0 prerelease 15]
+
+### Changed
+
+-   Updated Core to v0.6.4
+-   Updated Psyshock to v0.6.4
+-   Updated Kinemation to v0.6.4
+
+## [0.6.3] – 2022-12-19
+
+Officially supports Entities [1.0.0 prerelease 15]
+
+### Changed
+
+-   Updated Psyshock to v0.6.3
+
+## [0.6.2] – 2022-12-10
+
+Officially supports Entities [1.0.0 prerelease 15]
+
+### Changed
+
+-   Updated Kinemation to v0.6.2
+
+## [0.6.1] – 2022-11-28
+
+Officially supports Entities [1.0.0 prerelease 15]
+
+### Changed
+
+-   Updated Core to v0.6.1
+-   Updated Psyshock to v0.6.1
+-   Updated Myri to v0.6.1
+-   Updated Kinemation to v0.6.1
+
+## [0.6.0] – 2022-11-16
+
+Officially supports Entities [1.0.0 experimental]
+
+### Changed
+
+-   Updated Core to v0.6.0
+-   Updated Psyshock to v0.6.0
+-   Updated Myri to v0.6.0
+-   Updated Kinemation to v0.6.0
+
+## [0.5.8] – 2022-11-10
+
+Officially supports Entities [0.51.1]
+
+### Added
+
+-   Added Optimization Adventure Part 8
+
+### Changed
+
+-   Updated Core to v0.5.8
+-   Updated Kinemation to v0.5.8
+
+## [0.5.7] – 2022-8-28
+
+Officially supports Entities [0.51.1]
+
+### Changed
+
+-   Updated Core to v0.5.7
+-   Updated Psyshock to v0.5.7
+-   Updated Myri to v0.5.7
+-   Updated Kinemation to v0.5.7
+
+## [0.5.6] – 2022-8-21
+
+Officially supports Entities [0.50.1] – [0.51.1]
+
+### Changed
+
+-   Updated Core to v0.5.6
+-   Updated Myri to v0.5.6
+-   Updated Kinemation to v0.5.6
+
+## [0.5.5] – 2022-8-14
+
+Officially supports Entities [0.50.1] – [0.51.1]
+
+### Changed
+
+-   Updated Core to v0.5.5
+-   Updated Kinemation to v0.5.5
+
+## [0.5.4] – 2022-7-28
+
+Officially supports Entities [0.50.1]
+
+### Changed
+
+-   Updated Kinemation to v0.5.4
+
+## [0.5.3] – 2022-7-4
+
+Officially supports Entities [0.50.1]
+
+### Changed
+
+-   Updated Kinemation to v0.5.3
+
+## [0.5.2] – 2022-7-3
+
+Officially supports Entities [0.50.1]
+
+### Fixed
+
+-   Fixed Physics samples in projects that don’t use SceneManager
+
+### Changed
+
+-   Updated Core to v0.5.2
+-   Updated Psyshock to v0.5.2
+-   Updated Myri to v0.5.2
+-   Updated Kinemation to v0.5.2
+-   Added Optimization Adventure Part 7
+
+## [0.5.1] – 2022-6-19
+
+Officially supports Entities [0.50.1]
+
+### Changed
+
+-   Updated Core to v0.5.1
+-   Updated Kinemation to v0.5.1
+-   Updated the Getting Started guide for Kinemation to reflect improvements
+
+## [0.5.0] – 2022-6-13
+
+Officially supports Entities [0.50.1]
+
+### Added
+
+-   Kinemation Animation and Rendering
+-   Third-Party Notice for ACL (MIT)
+
+### Changed
+
+-   Updated Core to v0.5.0
+-   Updated Psyshock to v0.5.0
+-   Updated Myri to v0.5.0
+
+## [0.4.5] – 2022-3-20
+
+Officially supports Entities [0.50.0]
+
+### Changed
+
+-   Updated Core to v0.4.5
+-   Updated Psyshock to v0.4.5
+-   Updated Myri to v0.4.5
+
+## [0.4.4] – 2022-3-13
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Myri to v0.4.4
+-   Added FAQ
+
+## [0.4.3] – 2022-2-21
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Core to v0.4.3
+-   Updated Myri to v0.4.3
+-   Added How-To Guides
+
+## [0.4.2] – 2021-10-5
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Core to v0.4.2
+
+## [0.4.1] – 2021-9-16
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Core to v0.4.1
+-   Updated Psyshock to v0.4.1
+-   Added Optimization Adventure 6
+
+## [0.4.0] – 2021-8-9
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Core to v0.4.0
+-   Updated Psyshock to v0.4.0
+-   Updated Myri to v0.4.0
+-   Updated Optimization Adventure Samples
+
+## [0.3.3] – 2021-6-19
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Myri to v0.3.3
+
+## [0.3.2] – 2021-5-25
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Psyshock to v0.3.2
+-   Updated Myri to v0.3.2
+-   Removed Package lock file which caused 2020.3 LTS to complain
+
+## [0.3.1] – 2021-3-7
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Core to v0.3.1
+
+## [0.3.0] – 2021-3-4
+
+Officially supports Entities [0.17.0]
+
+### Added
+
+-   Myri Audio
+
+### Changed
+
+-   Updated Core to v0.3.0
+-   Renamed Physics to Psyshock and updated to v0.3.0
+
+## [0.2.2] - 2021-1-24
+
+Officially supports Entities [0.17.0]
+
+### Changed
+
+-   Updated Core to v0.2.2
+-   Updated Physics to v0.2.2
+-   Updated com.unity.entities to 0.17.0-preview.41
+
+## [0.2.1] - 2020-10-31
+
+Officially supports Entities [0.16.0]
+
+### Changed
+
+-   Updated Core to v0.2.1
+-   Updated com.unity.entities to 0.16.0-preview.21
+
+## [0.2.0] - 2020-9-22
+
+Officially supports Entities [0.14.0]
+
+### Changed
+
+-   Updated Core to v0.2.0
+-   Updated Physics to v0.2.0
+-   Moved OptimizationAdventures to Samples\~
+-   Refactored and improved Samples\~
+
+## [0.1.0] - 2019-12-21
+
+### This is the first release of *Latios Framework for DOTS*.
+
+-   Latios Core
+-   Latios Physics

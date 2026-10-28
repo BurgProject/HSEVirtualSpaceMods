@@ -1,0 +1,28 @@
+{
+    "name": "HSE.Mechanics.Components",
+    "rootNamespace": "",
+    "references": [
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:953adc2a6b8b4e3c8df5b728bcd546e9",
+        "GUID:a5baed0c9693541a5bd947d336ec7659",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:11912cc675165314485c904ed61b2e92",
+        "GUID:59e15be979a1f934cac2dcd97dd0ea2b",
+        "GUID:dcf02231572ad484487c29a0b02a080f",
+        "GUID:59f0604ded8a6f14bbf50c20effe8382"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

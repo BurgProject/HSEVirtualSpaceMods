@@ -1,0 +1,59 @@
+
+.node #title-label{
+    margin-left: 30px;
+}
+.titleIcon{
+    margin-left: 2px;
+    position: absolute;
+}
+
+.titlePlus_B{
+      background-color: rgb(73, 203, 55);
+}
+.titleMinus_B{
+      background-color: rgb(222, 60, 52);
+}
+
+.nodetitle_B{
+    background-color: rgb(73, 203, 55);
+    color: rgb(248,255,0);
+    font-size: 13px;
+}
+#node-border{
+    border-radius: 5px;
+}
+Label{
+   -unity-font-style: bold;
+   color: rgb(29, 221, 224);
+}
+.Highlight {
+    border-width: 0.5px;
+    border-color: yellow;
+}
+
+.listview-item{
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    position: relative;
+}
+
+.node{
+    display: flex;
+    flex-direction: column;
+    justify-content:center;
+    height: auto;
+    position: relative;
+}
+
+#extension {
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    position: relative;
+}
+
+.typeCraftPortType > Label{
+   -unity-font-style: bold;
+}

@@ -1,0 +1,27 @@
+{
+    "name": "HSE.Mechanics.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:59f0604ded8a6f14bbf50c20effe8382",
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:586c26a6ab8923842bcb0848f39b6cf7",
+        "GUID:5f3cf485eb0554709a8abbeace890c86",
+        "GUID:61431be5104c24137b41fcf2264ef434",
+        "GUID:478a2357cc57436488a56e564b08d223",
+        "GUID:d2ce47d7f3049464d970d5177ca4aed0",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:d8b63aba1907145bea998dd612889d6b"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,28 @@
+{
+    "name": "HSE.Graph.Components",
+    "rootNamespace": "",
+    "references": [
+        "Unity.Entities",
+        "Unity.Collections",
+        "Unity.Mathematics",
+        "Unity.NetCode",
+        "Unity.Transforms",
+        "Latios.Kinemation",
+        "Latios.Transforms",
+        "HSE.Collections",
+        "HSE.Editor.Attributes",
+        "Unity.Burst"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "ENTITY_STORE_V1",
+        "UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

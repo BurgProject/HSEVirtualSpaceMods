@@ -1,0 +1,279 @@
+﻿using System;
+using System.Diagnostics;
+using Latios.Calci;
+using Latios.Transforms;
+using Unity.Mathematics;
+
+namespace Latios.Psyshock
+{
+    public static partial class Physics
+    {
+        #region Rays
+        /// <summary>
+        /// Returns an Aabb that encompasses the ray
+        /// </summary>
+        public static Aabb AabbFrom(in Ray ray)
+        {
+            return new Aabb(math.min(ray.start, ray.end), math.max(ray.start, ray.end));
+        }
+
+        /// <summary>
+        /// Returns an Aabb that encompasses a ray with the provided endpoints
+        /// </summary>
+        public static Aabb AabbFrom(float3 rayStart, float3 rayEnd)
+        {
+            return new Aabb(math.min(rayStart, rayEnd), math.max(rayStart, rayEnd));
+        }
+        #endregion
+
+        #region Dispatch
+        /// <summary>
+        /// Returns an Aabb that encompasses the collider after being transformed by transform
+        /// </summary>
+        /// <param name="collider">The collider around which an Aabb should be created</param>
+        /// <param name="transform">A transform which specifies how the collider is oriented within
+        /// the coordinate space that the Aabb should be created in</param>
+        /// <returns>An Aabb that encompasses the collider with the specified transform</returns>
+        public static Aabb AabbFrom(in Collider collider, in TransformQvvs transform)
+        {
+            if (math.all(new float4(transform.stretch, transform.scale) == 1f))
+            {
+                var rigidTransform = new RigidTransform(transform.rotation, transform.position);
+                return AabbFrom(in collider, in rigidTransform);
+            }
+
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return AabbFrom(collider.m_sphere, in transform);
+                case ColliderType.Capsule:
+                    return AabbFrom(collider.m_capsule, in transform);
+                case ColliderType.Box:
+                    return AabbFrom(collider.m_box, in transform);
+                case ColliderType.Triangle:
+                    return AabbFrom(collider.m_triangle, in transform);
+                case ColliderType.Convex:
+                    return AabbFrom(collider.m_convex, in transform);
+                case ColliderType.TriMesh:
+                    return AabbFrom(collider.m_triMesh(), in transform);
+                case ColliderType.Compound:
+                    return AabbFrom(collider.m_compound(), in transform);
+                case ColliderType.Terrain:
+                    return AabbFrom(collider.m_terrain(), in transform);
+                default:
+                    ThrowUnsupportedType(collider.type);
+                    return new Aabb();
+            }
+        }
+
+        /// <summary>
+        /// Returns an Aabb that encompasses a ColliderCast operation, that is, it encompasses the full range of space
+        /// caused by sweeping a collider from a start to an end point. It is assumed rotation, scale, and stretch are
+        /// constant throughout the cast.
+        /// </summary>
+        /// <param name="colliderToCast">The collider shape that is being casted</param>
+        /// <param name="castStart">The transform of the collider at the start of the cast</param>
+        /// <param name="castEnd">The position of the collider at the end of the cast</param>
+        /// <returns>An encompassing Aabb for a ColliderCast operation</returns>
+        public static Aabb AabbFrom(in Collider colliderToCast, in TransformQvvs castStart, float3 castEnd)
+        {
+            if (math.all(new float4(castStart.stretch, castStart.scale) == 1f))
+            {
+                var rigidTransform = new RigidTransform(castStart.rotation, castStart.position);
+                return AabbFrom(in colliderToCast, in rigidTransform, castEnd);
+            }
+
+            var aabbStart = AabbFrom(in colliderToCast, castStart);
+            var diff      = castEnd - castStart.position;
+            var aabbEnd   = new Aabb(aabbStart.min + diff, aabbStart.max + diff);
+            return CombineAabb(aabbStart, aabbEnd);
+        }
+
+        internal static Aabb AabbFrom(in Collider collider, in RigidTransform transform)
+        {
+            switch (collider.type)
+            {
+                case ColliderType.Sphere:
+                    return AabbFrom(collider.m_sphere, in transform);
+                case ColliderType.Capsule:
+                    return AabbFrom(collider.m_capsule, in transform);
+                case ColliderType.Box:
+                    return AabbFrom(collider.m_box, in transform);
+                case ColliderType.Triangle:
+                    return AabbFrom(collider.m_triangle, in transform);
+                case ColliderType.Convex:
+                    return AabbFrom(collider.m_convex, in transform);
+                case ColliderType.TriMesh:
+                    return AabbFrom(collider.m_triMesh(), in transform);
+                case ColliderType.Compound:
+                    return AabbFrom(collider.m_compound(), in transform);
+                case ColliderType.Terrain:
+                    return AabbFrom(collider.m_terrain(), in transform);
+                default:
+                    ThrowUnsupportedType(collider.type);
+                    return new Aabb();
+            }
+        }
+
+        internal static Aabb AabbFrom(in Collider colliderToCast, in RigidTransform castStart, float3 castEnd)
+        {
+            var aabbStart = AabbFrom(in colliderToCast, castStart);
+            var diff      = castEnd - castStart.pos;
+            var aabbEnd   = new Aabb(aabbStart.min + diff, aabbStart.max + diff);
+            return CombineAabb(aabbStart, aabbEnd);
+        }
+
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        private static void ThrowUnsupportedType(ColliderType type)
+        {
+            throw new InvalidOperationException($"Collider type not supported yet. Type code is {(int)type}");
+        }
+        #endregion
+
+        #region Colliders
+        private static Aabb AabbFrom(in SphereCollider sphere, in RigidTransform transform)
+        {
+            float3 wc   = math.transform(transform, sphere.center);
+            Aabb   aabb = new Aabb(wc - sphere.radius, wc + sphere.radius);
+            return aabb;
+        }
+
+        private static Aabb AabbFrom(SphereCollider sphere, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref sphere, transform.scale, transform.stretch);
+            return AabbFrom(in sphere, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in CapsuleCollider capsule, in RigidTransform transform)
+        {
+            float3 a = math.transform(transform, capsule.pointA);
+            float3 b = math.transform(transform, capsule.pointB);
+            return new Aabb(math.min(a, b) - capsule.radius, math.max(a, b) + capsule.radius);
+        }
+
+        private static Aabb AabbFrom(CapsuleCollider capsule, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref capsule, transform.scale, transform.stretch);
+            return AabbFrom(in capsule, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in BoxCollider box, in RigidTransform transform)
+        {
+            return TransformAabb(new float4x4(transform), box.center, box.halfSize);
+        }
+
+        private static Aabb AabbFrom(BoxCollider box, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref box, transform.scale, transform.stretch);
+            return AabbFrom(in box, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in TriangleCollider triangle, in RigidTransform transform)
+        {
+            var transformedTriangle = simd.transform(transform, new simdFloat3(triangle.pointA, triangle.pointB, triangle.pointC, triangle.pointA));
+            var aabb                = new Aabb(math.min(transformedTriangle.a, transformedTriangle.b), math.max(transformedTriangle.a, transformedTriangle.b));
+            return CombineAabb(transformedTriangle.c, aabb);
+        }
+
+        private static Aabb AabbFrom(TriangleCollider triangle, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref triangle, transform.scale, transform.stretch);
+            return AabbFrom(in triangle, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in ConvexCollider convex, in RigidTransform transform)
+        {
+            var         local = convex.convexColliderBlob.Value.localAabb;
+            float3      c     = (local.min + local.max) / 2f;
+            BoxCollider box   = new BoxCollider(c, local.max - c);
+            ScaleStretchCollider(ref box, 1f, convex.scale);
+            return AabbFrom(in box, transform);
+        }
+
+        private static Aabb AabbFrom(ConvexCollider convex, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref convex, transform.scale, transform.stretch);
+            return AabbFrom(in convex, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in TriMeshCollider triMesh, in RigidTransform transform)
+        {
+            var         local = triMesh.triMeshColliderBlob.Value.localAabb;
+            float3      c     = (local.min + local.max) / 2f;
+            BoxCollider box   = new BoxCollider(c, local.max - c);
+            ScaleStretchCollider(ref box, 1f, triMesh.scale);
+            return AabbFrom(in box, transform);
+        }
+
+        private static Aabb AabbFrom(TriMeshCollider triMesh, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref triMesh, transform.scale, transform.stretch);
+            return AabbFrom(in triMesh, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in TerrainCollider terrain, in RigidTransform transform)
+        {
+            int  dimInt       = terrain.terrainColliderBlob.Value.quadsPerRow;
+            int  minHeightInt = terrain.baseHeightOffset + terrain.terrainColliderBlob.Value.minHeight;
+            int  maxHeightInt = terrain.baseHeightOffset + terrain.terrainColliderBlob.Value.maxHeight;
+            int3 minInt       = new int3(0, minHeightInt, 0);
+            int3 maxInt       = new int3(dimInt, maxHeightInt, dimInt);
+            var  localAabb    = new Aabb(minInt * terrain.scale, maxInt * terrain.scale);
+            return TransformAabb(new TransformQvvs(transform), localAabb);
+        }
+
+        private static Aabb AabbFrom(TerrainCollider terrain, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref terrain, transform.scale, transform.stretch);
+            return AabbFrom(in terrain, new RigidTransform(transform.rotation, transform.position));
+        }
+
+        private static Aabb AabbFrom(in CompoundCollider compound, in RigidTransform transform)
+        {
+            switch (compound.stretchMode)
+            {
+                case CompoundCollider.StretchMode.RotateStretchLocally:
+                {
+                    var radialExtents = compound.scale * compound.compoundColliderBlob.Value.maxOffsetFromAnchors * math.cmax(math.abs(compound.stretch));
+                    var local         = compound.compoundColliderBlob.Value.anchorsAabb;
+                    GetCenterExtents(local, out var c, out var e);
+                    BoxCollider box = new BoxCollider(c, e);
+                    ScaleStretchCollider(ref box, compound.scale, compound.stretch);
+                    var transformed = AabbFrom(in box, transform);
+                    GetCenterExtents(transformed, out c, out e);
+                    e += radialExtents;
+                    return new Aabb(c - e, c + e);
+                }
+                case CompoundCollider.StretchMode.IgnoreStretch:
+                {
+                    var local = compound.compoundColliderBlob.Value.anchorsAabb;
+                    GetCenterExtents(local, out var c, out var e);
+                    BoxCollider box = new BoxCollider(c, e);
+                    ScaleStretchCollider(ref box, compound.scale, 1f);
+                    return AabbFrom(in box, transform);
+                }
+                case CompoundCollider.StretchMode.StretchPositionsOnly:
+                {
+                    var radialExtents = compound.scale * compound.compoundColliderBlob.Value.maxOffsetFromAnchors;
+                    var local         = compound.compoundColliderBlob.Value.anchorsAabb;
+                    GetCenterExtents(local, out var c, out var e);
+                    BoxCollider box = new BoxCollider(c, e);
+                    ScaleStretchCollider(ref box, compound.scale, compound.stretch);
+                    var transformed  = AabbFrom(in box, transform);
+                    transformed.min -= radialExtents;
+                    transformed.max += radialExtents;
+                    return transformed;
+                }
+                default: return new Aabb(transform.pos, transform.pos);
+            }
+        }
+
+        private static Aabb AabbFrom(CompoundCollider compound, in TransformQvvs transform)
+        {
+            ScaleStretchCollider(ref compound, transform.scale, transform.stretch);
+            return AabbFrom(in compound, new RigidTransform(transform.rotation, transform.position));
+        }
+        #endregion
+    }
+}
+

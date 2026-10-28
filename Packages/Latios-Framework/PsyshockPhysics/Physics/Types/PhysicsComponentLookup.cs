@@ -1,0 +1,358 @@
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Latios.Transforms;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Entities;
+using Unity.Mathematics;
+
+namespace Latios.Psyshock
+{
+    //Specifying this as a NativeContainer prevents this value from being stored in a NativeContainer.
+    /// <summary>
+    /// A struct representing an Entity that can potentially index a PhysicsComponentDataFromEntity safely in parallel,
+    /// or will throw an error when safety checks are enabled and the safety cannot be guaranteed.
+    /// This type can be implicitly converted to the Entity type.
+    /// </summary>
+    [NativeContainer]
+    public struct SafeEntity
+    {
+        internal Entity m_entity;
+
+        public Entity entity => (Entity)this;
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+        public static implicit operator Entity(SafeEntity e) => new Entity
+        {
+            Index = math.select(e.m_entity.Index, math.abs(e.m_entity.Index + 1), e.m_entity.Index < 0), Version = e.m_entity.Version
+        };
+#else
+        public static implicit operator Entity(SafeEntity e) => e.m_entity;
+#endif
+
+#if !LATIOS_TRANSFORMS_UNITY
+        /// <summary>
+        /// Assuming this SafeEntity is a solo or root entity, creates a TransformsKey for this entity
+        /// to use with TransformsComponentLookup and TransformsBufferLookup
+        /// </summary>
+        /// <param name="entityStorageInfoLookup">An EntityStorageInfoLookup used to validate the entity is a solo or root entity</param>
+        /// <returns>A TransformsKey used for safe hierarchy access</returns>
+        public TransformsKey CreateTransformsKey(EntityStorageInfoLookup entityStorageInfoLookup)
+        {
+            ValidateSafeEntityIsSafe();
+            return TransformsKey.CreateFromExclusivelyAccessedRoot(entity, entityStorageInfoLookup);
+        }
+
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        void ValidateSafeEntityIsSafe()
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (m_entity.Index < 0)
+            {
+                throw new InvalidOperationException(
+                    "The entity is not safe to convert into a TransformsKey. This could be because the scheduling mode does not support safe entity lookup, or because the entity in a PairStream was not granted read-write access at its creation.");
+            }
+#endif
+        }
+#endif
+    }
+
+    /// <summary>
+    /// A struct which wraps ComponentLookup<typeparamref name="T"/> and allows for performing
+    /// Read-Write access in parallel using SafeEntity types when it is guaranteed safe to do so.
+    /// You can implicitly cast a ComponentLookup<typeparamref name="T"/> to this type.
+    /// </summary>
+    /// <typeparam name="T">A type implementing IComponentData</typeparam>
+    public struct PhysicsComponentLookup<T> where T : unmanaged, IComponentData
+    {
+        [NativeDisableParallelForRestriction]
+        internal ComponentLookup<T> lookup;
+
+        /// <summary>
+        /// Reads or writes the component on the entity represented by safeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        public T this[SafeEntity safeEntity]
+        {
+            get
+            {
+                ValidateSafeEntityIsSafe(safeEntity);
+                return lookup[safeEntity.m_entity];
+            }
+            set
+            {
+                ValidateSafeEntityIsSafe(safeEntity);
+                lookup[safeEntity.m_entity] = value;
+            }
+        }
+
+        /// <summary>
+        /// Acquires a RefRW to the component on the entity represented by safeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <returns>A RefRW that provides direct access to component storage.</returns>
+        public RefRW<T> GetRW(SafeEntity safeEntity)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            return lookup.GetRefRW(safeEntity);
+        }
+
+        /// <summary>
+        /// Fetches the component on the entity represented by safeEntity if the entity has the component.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <param name="componentData">The fetched component</param>
+        /// <returns>True if the entity had the component</returns>
+        public bool TryGetComponent(SafeEntity safeEntity, out T componentData)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            return lookup.TryGetComponent(safeEntity, out componentData);
+        }
+
+        /// <summary>
+        /// Checks if the entity represented by SafeEntity has the component specified.
+        /// This check is always valid regardless of whether such a component would be
+        /// safe to access.
+        /// </summary>
+        public bool HasComponent(SafeEntity safeEntity) => lookup.HasComponent(safeEntity);
+
+        /// <summary>
+        /// This is identical to ComponentDataFromEntity<typeparamref name="T"/>.DidChange().
+        /// Note that neither method is deterministic and both can be prone to race conditions.
+        /// </summary>
+        public bool DidChange(SafeEntity safeEntity, uint version) => lookup.DidChange(safeEntity, version);
+
+        /// <summary>
+        /// Fetches the enabled bit of the component on the entity represented by SafeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot be guaranteed.
+        /// The component must be of type IEnableableComponent.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <returns>The enabled state as a boolean</returns>
+        public bool IsEnabled(SafeEntity safeEntity)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            return lookup.IsComponentEnabled(safeEntity);
+        }
+
+        /// <summary>
+        /// Sets the enabled bit of the component on the entity represented by SafeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot be guaranteed.
+        /// The component must be of type IEnableableComponent.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <param name="enabled">The new enabled state of the component</param>
+        /// <remarks>This method performs an atomic operation which may suffer from worse performance than setting a normal bool field.</remarks>
+        public void SetEnabled(SafeEntity safeEntity, bool enabled)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            lookup.SetComponentEnabled(safeEntity, enabled);
+        }
+
+        public static implicit operator PhysicsComponentLookup<T>(ComponentLookup<T> componentLookup)
+        {
+            return new PhysicsComponentLookup<T> { lookup = componentLookup };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Update(ref SystemState state)
+        {
+            lookup.Update(ref state);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Update(SystemBase system)
+        {
+            lookup.Update(system);
+        }
+
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        static void ValidateSafeEntityIsSafe(SafeEntity safeEntity)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (safeEntity.m_entity.Index < 0)
+            {
+                throw new InvalidOperationException(
+                    "The entity is not safe to access by PhysicsComponentLookup within this context. This could be because the scheduling mode does not support safe entity lookup, or because the entity in a PairStream was not granted read-write access at its creation. If you only intend to read this entity, use ComponentLookup instead.");
+            }
+#endif
+        }
+    }
+
+    /// <summary>
+    /// A struct which wraps BufferLookup<typeparamref name="T"/> and allows for performing
+    /// Read-Write access in parallel using SafeEntity types when it is guaranteed safe to do so.
+    /// You can implicitly cast a BufferLookup<typeparamref name="T"/> to this type.
+    /// </summary>
+    /// <typeparam name="T">A type implementing IBufferElementData</typeparam>
+    public struct PhysicsBufferLookup<T> where T : unmanaged, IBufferElementData
+    {
+        [NativeDisableParallelForRestriction]
+        internal BufferLookup<T> lookup;
+
+        /// <summary>
+        /// Gets a reference to the buffer on the entity represented by safeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        public DynamicBuffer<T> this[SafeEntity safeEntity]
+        {
+            get
+            {
+                ValidateSafeEntityIsSafe(safeEntity);
+                return lookup[safeEntity.m_entity];
+            }
+        }
+
+        /// <summary>
+        /// Fetches the buffer on the entity represented by safeEntity if the entity has the buffer type.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <param name="bufferData">The fetched buffer</param>
+        /// <returns>True if the entity had the buffer type</returns>
+        public bool TryGetComponent(SafeEntity safeEntity, out DynamicBuffer<T> bufferData)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            return lookup.TryGetBuffer(safeEntity, out bufferData);
+        }
+
+        /// <summary>
+        /// Checks if the entity represented by SafeEntity has the buffer type specified.
+        /// This check is always valid regardless of whether such a buffer would be
+        /// safe to access.
+        /// </summary>
+        public bool HasBuffer(SafeEntity safeEntity) => lookup.HasBuffer(safeEntity.m_entity);
+
+        /// <summary>
+        /// This is identical to BufferFromEntity<typeparamref name="T"/>.DidChange().
+        /// Note that neither method is deterministic and both can be prone to race conditions.
+        /// </summary>
+        public bool DidChange(SafeEntity safeEntity, uint version) => lookup.DidChange(safeEntity, version);
+
+        /// <summary>
+        /// Fetches the enabled bit of the buffer on the entity represented by SafeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot be guaranteed.
+        /// The buffer must be of type IEnableableComponent.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <returns>The enabled state as a boolean</returns>
+        public bool IsEnabled(SafeEntity safeEntity)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            return lookup.IsBufferEnabled(safeEntity);
+        }
+
+        /// <summary>
+        /// Sets the enabled bit of the buffer on the entity represented by SafeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot be guaranteed.
+        /// The buffer must be of type IEnableableComponent.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <param name="enabled">The new enabled state of the buffer</param>
+        /// <remarks>This method performs an atomic operation which may suffer from worse performance than setting a normal bool field.</remarks>
+        public void SetEnabled(SafeEntity safeEntity, bool enabled)
+        {
+            ValidateSafeEntityIsSafe(safeEntity);
+            lookup.SetBufferEnabled(safeEntity, enabled);
+        }
+
+        public static implicit operator PhysicsBufferLookup<T>(BufferLookup<T> bufferFromEntity)
+        {
+            return new PhysicsBufferLookup<T> { lookup = bufferFromEntity };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Update(ref SystemState state)
+        {
+            lookup.Update(ref state);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Update(SystemBase system)
+        {
+            lookup.Update(system);
+        }
+
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        static void ValidateSafeEntityIsSafe(SafeEntity safeEntity)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (safeEntity.m_entity.Index < 0)
+            {
+                throw new InvalidOperationException(
+                    "The entity is not safe to access by PhysicsBufferLookup within this context. This could be because the scheduling mode does not support safe entity lookup, or because the entity in a PairStream was not granted read-write access at its creation. If you only intend to read this entity, use BufferLookup instead.");
+            }
+#endif
+        }
+    }
+
+    public static class ComponentBrokerPhysicsExtensions
+    {
+        /// <summary>
+        /// Acquires an optional RefRO to the component on the entity represented by safeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <returns>A RefRO instance which may or may not be valid (use IsValid to check)</returns>
+        public static RefRO<T> GetRO<T>(ref this ComponentBroker broker, SafeEntity entity) where T : unmanaged, IComponentData
+        {
+            if (broker.IsReadOnlyAccessType<T>())
+                return broker.GetRO<T>(entity);
+            ValidateSafeEntityIsSafe(entity);
+            return broker.GetROIgnoreParallelSafety<T>(entity);
+        }
+
+        /// <summary>
+        /// Acquires an optional RefRW to the component on the entity represented by safeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <returns>A RefRW instance which may or may not be valid (use IsValid to check)</returns>
+        public static RefRW<T> GetRW<T>(ref this ComponentBroker broker, SafeEntity entity) where T : unmanaged, IComponentData
+        {
+            ValidateSafeEntityIsSafe(entity);
+            return broker.GetRWIgnoreParallelSafety<T>(entity);
+        }
+
+        /// <summary>
+        /// Acquires an optional DynamicBuffer on the entity represented by safeEntity.
+        /// When safety checks are enabled, this throws when parallel safety cannot
+        /// be guaranteed.
+        /// </summary>
+        /// <param name="safeEntity">A safeEntity representing an entity that may be safe to access</param>
+        /// <returns>A DynamicBuffer instance which may or may not be valid (use IsCreated to check)</returns>
+        public static DynamicBuffer<T> GetBuffer<T>(ref this ComponentBroker broker, SafeEntity entity) where T : unmanaged, IBufferElementData
+        {
+            if (broker.IsReadOnlyAccessType<T>())
+                return broker.GetBuffer<T>(entity);
+            ValidateSafeEntityIsSafe(entity);
+            return broker.GetBufferIgnoreParallelSafety<T>(entity);
+        }
+
+        [Conditional("ENABLE_UNITY_COLLECTIONS_CHECKS")]
+        static void ValidateSafeEntityIsSafe(SafeEntity safeEntity)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            if (safeEntity.m_entity.Index < 0)
+            {
+                throw new InvalidOperationException("SafeEntity for a ComponentBroker cannot be used inside a RunImmediate context. Use SafeEntity.entity instead.");
+                throw new InvalidOperationException(
+                    "The SafeEntity is not safe to access by ComponentBroker within this context. This could be because the scheduling mode does not support safe entity lookup, or because the entity in a PairStream was not granted read-write access at its creation. If you only intend to read this entity, cast the SafeEntity to an Entity first.");
+            }
+#endif
+        }
+    }
+}
+

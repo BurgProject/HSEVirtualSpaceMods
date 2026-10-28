@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd6e00812ade93446b022884c03e754f, type: 3}
+  m_Name: PlaytestSettings
+  m_EditorClassIdentifier: HSE.Playtest::HSE.Playtest.PlaytestSettings
+  SyncedFrom: 2026-09-25 18:02 from CharacterFPS.prefab, GameRoom.unity, URP_High
+  CharacterProperties:
+    CustomPhysicsBodyTags:
+      Tag00: 0
+      Tag01: 0
+      Tag02: 0
+      Tag03: 0
+      Tag04: 0
+      Tag05: 0
+      Tag06: 0
+      Tag07: 0
+    InterpolatePosition: 1
+    InterpolateRotation: 0
+    EvaluateGrounding: 1
+    SnapToGround: 1
+    GroundSnappingDistance: 0.5
+    EnhancedGroundPrecision: 0
+    MaxGroundedSlopeAngle: 60
+    DetectMovementCollisions: 1
+    DecollideFromOverlaps: 1
+    ProjectVelocityOnInitialOverlaps: 0
+    MaxContinuousCollisionsIterations: 8
+    MaxOverlapDecollisionIterations: 2
+    DiscardMovementWhenExceedMaxIterations: 1
+    KillVelocityWhenExceedMaxIterations: 1
+    DetectObstructionsForParentBodyMovement: 0
+    SimulateDynamicBody: 1
+    Mass: 1
+  GroundMaxSpeed: 5
+  GroundedMovementSharpness: 10
+  AirAcceleration: 50
+  AirMaxSpeed: 10
+  AirDrag: 0
+  JumpSpeed: 10
+  Gravity:
+    x: -0
+    y: -30
+    z: -0
+  PreventAirAccelerationAgainstUngroundedHits: 1
+  StepAndSlopeHandling:
+    StepHandling: 0
+    MaxStepHeight: 0.5
+    ExtraStepChecksDistance: 0.1
+    CharacterWidthForStepGroundingCheck: 1
+    PreventGroundingWhenMovingTowardsNoGrounding: 1
+    HasMaxDownwardSlopeChangeAngle: 0
+    MaxDownwardSlopeChangeAngle: 90
+    ConstrainVelocityToGroundPlane: 1
+  MinViewAngle: -90
+  MaxViewAngle: 90
+  ViewRollAmount: 0
+  ViewRollSharpness: 0
+  ViewLocalPosition:
+    x: 0
+    y: 1.44
+    z: 0
+  CapsuleVertex0:
+    x: 0
+    y: 0.27999997
+    z: -0.000000085830685
+  CapsuleVertex1:
+    x: 0
+    y: 1.72
+    z: 0.000000085830685
+  CapsuleRadius: 0.28
+  BelongsTo: 2
+  CollidesWith: 7
+  GroupIndex: 0
+  Friction: 0.5
+  FrictionCombine: 0
+  Restitution: 0
+  RestitutionCombine: 2
+  CollisionResponse: 0
+  CustomMaterialTags: 0
+  LookSensitivity: 0.15
+  SimulationTickRate: 30
+  ClearFlags: 1
+  BackgroundColor: {r: 0, g: 0, b: 0, a: 1}
+  FieldOfView: 60
+  NearClipPlane: 0.3
+  FarClipPlane: 1000
+  AllowHDR: 1
+  AllowMSAA: 1
+  RenderPostProcessing: 1
+  Antialiasing: 0
+  AntialiasingQuality: 2
+  Dithering: 0
+  StopNaN: 0
+  Pipeline: {fileID: 11400000, guid: 980948da6a7357a4fb974396b387c675, type: 2}
+  DefaultVolumeProfile: {fileID: 11400000, guid: 873bd9eaed7142847b4bafe587219eea,
+    type: 2}
+  Skybox: {fileID: -876546973899608171, guid: cae7eff9532dac24788bb00e3d621d13, type: 3}
+  Fog: 0
+  FogMode: 3
+  FogColor: {r: 0.6111051, g: 0.8136388, b: 0.9338235, a: 1}
+  FogDensity: 0.001
+  FogStartDistance: 0
+  FogEndDistance: 300
+  AmbientMode: 0
+  AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  AmbientIntensity: 1
+  ReflectionIntensity: 1

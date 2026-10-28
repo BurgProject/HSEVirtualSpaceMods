@@ -1,0 +1,6 @@
+{
+  "name": "HSE.Serialization.Wire",
+  "references": [],
+  "allowUnsafeCode": true,
+  "noEngineReferences": true
+}

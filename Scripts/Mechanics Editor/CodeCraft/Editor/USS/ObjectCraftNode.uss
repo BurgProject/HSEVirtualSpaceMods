@@ -1,0 +1,13 @@
+.node #title{
+	background-color: rgb(19, 107, 40)
+}
+
+#node-border{
+	background-color: rgb(0, 42, 46)
+}
+
+.Label{
+	margin-top: 5px;
+	margin-left: 4px;
+	font-size: 15px;
+}

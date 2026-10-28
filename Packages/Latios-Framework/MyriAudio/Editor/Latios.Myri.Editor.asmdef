@@ -1,0 +1,21 @@
+{
+	"name": "Latios.Myri.Editor",
+	"rootNamespace": "Latios.Myri.Editor",
+	"references": [
+		"Latios.Myri"
+	],
+	"includePlatforms": [
+		"Editor"
+	],
+	"excludePlatforms": [],
+	"allowUnsafeCode": true,
+	"overrideReferences": false,
+	"precompiledReferences": [],
+	"autoReferenced": true,
+	"defineConstraints": [
+		"ENTITY_STORE_V1",
+		"UNITY_BURST_EXPERIMENTAL_ATOMIC_INTRINSICS"
+	],
+	"versionDefines": [],
+	"noEngineReferences": false
+}

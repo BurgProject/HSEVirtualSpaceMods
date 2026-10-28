@@ -1,0 +1,9 @@
+{
+    "name": "HSE.UI",
+    "rootNamespace": "HSE.UI",
+    "references": [
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
+    "autoReferenced": true
+}
