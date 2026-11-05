@@ -28,7 +28,8 @@
         "GUID:b209182b76e649688b6a5a8914d16429",
         "GUID:63afb046c8423dd448ae7aba042ea63d",
         "HSE.UI",
-        "Unity.Physics.Hybrid"
+        "Unity.Physics.Hybrid",
+        "Unity.Transforms"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

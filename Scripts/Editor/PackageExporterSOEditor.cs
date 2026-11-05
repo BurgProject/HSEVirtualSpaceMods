@@ -11,7 +11,10 @@ public sealed class PackageExporterSOEditor : Editor
 
         Draw("mainSceneName");
         Draw("subScenePath");
-        Draw("contentScenePath");
+        EditorGUI.BeginChangeCheck();
+        Draw("contentScene");
+        if (EditorGUI.EndChangeCheck())
+            serializedObject.FindProperty("legacyContentScenePath").stringValue = string.Empty;
         Draw("guid");
 
         EditorGUILayout.Space(8);

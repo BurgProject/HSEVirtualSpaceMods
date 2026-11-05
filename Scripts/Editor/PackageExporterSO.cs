@@ -17,6 +17,7 @@ using UnityEditor.Build;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 namespace HSE_MAIN.Editor.Mods
 {
@@ -26,7 +27,13 @@ namespace HSE_MAIN.Editor.Mods
         [ReadOnly] public string mainSceneName = "ContentScene";
 
         [SerializeField][ReadOnly] private string subScenePath = "Assets/Scenes/Main/ContentScene/ContSub.unity";
-        [SerializeField][ReadOnly] private string contentScenePath = "Assets/Scenes/Main/ContentScene.unity";
+        [SerializeField] private SceneAsset contentScene;
+        [SerializeField, HideInInspector, FormerlySerializedAs("contentScenePath")]
+        private string legacyContentScenePath = "Assets/Scenes/Main/ContentScene/ContentScene.unity";
+
+        private string contentScenePath => contentScene != null
+            ? AssetDatabase.GetAssetPath(contentScene)
+            : legacyContentScenePath;
 
         [HideInInspector][Delayed] private string guid;
 
@@ -107,10 +114,26 @@ namespace HSE_MAIN.Editor.Mods
 
         private void OnEnable()
         {
+            MigrateContentScene();
             RestorePrefsIfNeeded();
 
             if (!string.IsNullOrWhiteSpace(buildPath) || !string.IsNullOrWhiteSpace(packagesFolderPath))
                 EditorUtility.SetDirty(this);
+        }
+
+        private void MigrateContentScene()
+        {
+            if (string.IsNullOrEmpty(legacyContentScenePath))
+                return;
+
+            if (contentScene == null)
+                contentScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(legacyContentScenePath);
+
+            if (contentScene == null)
+                return;
+
+            legacyContentScenePath = string.Empty;
+            EditorUtility.SetDirty(this);
         }
 
         public void SelectBuildPath()
@@ -610,9 +633,6 @@ namespace HSE_MAIN.Editor.Mods
 
         public void ExportSubscenePackage(string outputFolder, string exportName)
         {
-#if !HSE_BUILD
-            SceneSettingsSync.SyncForExport(contentScenePath);
-#endif
             if (!File.Exists(subScenePath))
             {
                 Debug.LogError($"Subscene not found at path: {subScenePath}");
@@ -627,7 +647,11 @@ namespace HSE_MAIN.Editor.Mods
 
             Directory.CreateDirectory(outputFolder);
 
-            string[] dependencies = AssetDatabase.GetDependencies(subScenePath, true);
+            LocationContentBuild.Prepare(contentScenePath);
+#if !HSE_BUILD
+            SceneSettingsSync.SyncForExport(contentScenePath);
+#endif
+            string[] dependencies = AssetDatabase.GetDependencies(contentScenePath, true);
 
             string safeName = string.IsNullOrWhiteSpace(exportName) ? GetFolderName(outputFolder) : exportName.Trim();
             var packagePath = Path.Combine(outputFolder, $"{safeName}.unitypackage");
@@ -667,6 +691,7 @@ namespace HSE_MAIN.Editor.Mods
                 if (!playerGuid.IsValid)
                     throw new Exception("Invalid Player GUID");
 
+                var bootstrap = LocationContentBuild.Prepare(contentScenePath);
                 var subSceneGuids = new HashSet<Unity.Entities.Hash128>();
                 AddSubSceneGuids( subSceneGuids, contentScenePath);
 
@@ -685,7 +710,11 @@ namespace HSE_MAIN.Editor.Mods
 
                 RecreateDirectory(publishPlatformFolder);
 
-                RemoteContentCatalogBuildUtility.PublishContent(tmpBuildFolder, publishPlatformFolder, f => new[] { "root" }, true);
+                if (!RemoteContentCatalogBuildUtility.PublishContent(tmpBuildFolder, publishPlatformFolder, f => new[] { "root" }, true))
+                    throw new Exception("Content publication failed.");
+
+                File.WriteAllText(Path.Combine(publishPlatformFolder, HSE.Mechanics.Authorings.LocationContentBootstrap.FileName),
+                    JsonUtility.ToJson(bootstrap, true));
 
                 if (_createZipAfterPublish)
                     CreateOrReplaceZipForPlatformFolder(publishPlatformFolder);
@@ -945,9 +974,6 @@ namespace HSE_MAIN.Editor.Mods
         /// used to wait through a full publish to learn that a path was unset or the subscene was never saved.</summary>
         private void Preflight(BuildTarget[] platforms, string outputPath)
         {
-            #if !HSE_BUILD
-            SceneSettingsSync.SyncForExport(contentScenePath); // Lighting window -> the SubScene's scene-settings authorings
-            #endif
             var problems = new List<string>();
 
             if (platforms == null || platforms.Length == 0)
@@ -991,6 +1017,9 @@ namespace HSE_MAIN.Editor.Mods
                 throw new Exception(msg);
             }
 
+#if !HSE_BUILD
+            SceneSettingsSync.SyncForExport(contentScenePath);
+#endif
             LogStep("preflight", true, "ok");
         }
 

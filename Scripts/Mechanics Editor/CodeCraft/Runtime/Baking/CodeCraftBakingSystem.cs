@@ -43,6 +43,10 @@ namespace HSE.CodeCraft
             for (int i = 0; i < entities.Length; i++)
                 BakeEntity(ref state, entities[i].Value, i, ref asset.Storage.Value,
                     ref data.Storage.Value.AllDatas, ref blobStore, commands);
+
+            var roots = new List<Entity>(entities.Length);
+            foreach (var entity in entities) roots.Add(entity.Value);
+            GraphHierarchyBaking.Build(state.EntityManager, roots);
         }
 
         /// <summary>Сохраняет начальные и событийные записи без зависимости контента от native layout игровых типов.</summary>
